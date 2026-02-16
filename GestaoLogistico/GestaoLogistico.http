@@ -1,0 +1,6 @@
+@GestaoLogistico_HostAddress = http://localhost:5280
+
+GET {{GestaoLogistico_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
