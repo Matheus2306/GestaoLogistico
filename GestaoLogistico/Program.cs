@@ -1,5 +1,6 @@
 using GestaoLogistico.Data;
 using GestaoLogistico.Models;
+using GestaoLogistico.Repositories.UsuarioRepository;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -94,6 +95,12 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader();
     });
 });
+
+//registrar repositórios
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+
+//registrar AutoMapper
+builder.Services.AddAutoMapper(typeof(Program));
 
 //Authentication e Authorization
 builder.Services.AddAuthentication();

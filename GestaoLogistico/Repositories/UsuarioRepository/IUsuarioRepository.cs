@@ -1,0 +1,18 @@
+﻿using GestaoLogistico.DTOs;
+using GestaoLogistico.Models;
+
+namespace GestaoLogistico.Repositories.UsuarioRepository
+{
+    /// <summary>
+    /// define a interface para o repositório de usuários, que pode incluir métodos para operações CRUD, autenticação, autorização e outras funcionalidades relacionadas aos usuários do sistema.
+    /// </summary>
+    public interface IUsuarioRepository
+    {
+
+        /// <summary>
+        /// retorna uma lista de todos os usuários do sistema. Este método pode ser utilizado para exibir informações dos usuários em uma interface administrativa ou para outras finalidades que envolvam a manipulação dos dados dos usuários.
+        /// </summary>
+        Task<IEnumerable<UserDTOcompleto>> GetAllUsersAsync();
+
+    }
+}
