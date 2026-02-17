@@ -1,6 +1,7 @@
 using GestaoLogistico.Data;
 using GestaoLogistico.Models;
 using GestaoLogistico.Repositories.UsuarioRepository;
+using GestaoLogistico.Services.DocValidator;
 using GestaoLogistico.Services.FileService;
 using GestaoLogistico.Services.UsuarioService;
 using Microsoft.AspNetCore.Identity;
@@ -107,6 +108,7 @@ builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 //registrar serviços
 builder.Services.AddScoped<IfileUploadService, FileUploadService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IDocValidatorService, DocValidatorService>();
 
 //registrar AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));

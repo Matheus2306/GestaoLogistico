@@ -24,7 +24,22 @@ namespace GestaoLogistico.Services.UsuarioService
             _docValidatorService = docValidatorService;
         }
 
-        //============ CRUD ===============
+        public async Task<UserSimpleDTO> GetCurrentUser()
+        {
+            var currentUserDto = await _usuarioRepository.GetCurrentUser();
+            if (currentUserDto == null)
+            {
+                _logger.LogWarning("Current user not found in token.");
+                throw new KeyNotFoundException($"Usuário não foi encontrado.");
+            }
+
+            //converter o caminho da foto para uma URL completa
+            currentUserDto.UrlPhoto = _fileUploadService.GetFileUrl(currentUserDto.UrlPhoto);
+
+            return _mapper.Map<UserSimpleDTO>(currentUserDto);
+        }
+
+        //======================= CRUD ============================
         public async Task<UserEditFormDTO> EditUser(UserEditFormDTO dto)
         {
             var currentUserDto = await _usuarioRepository.GetCurrentUser();
@@ -98,5 +113,7 @@ namespace GestaoLogistico.Services.UsuarioService
 
             return _mapper.Map<UserEditFormDTO>(user);
         }
+
+        
     }
 }

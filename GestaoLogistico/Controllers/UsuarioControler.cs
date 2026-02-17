@@ -38,7 +38,7 @@ namespace GestaoLogistico.Controllers
         {
             try
             {
-                var user = await _userRepository.GetCurrentUser();
+                var user = await _userService.GetCurrentUser();
                 return Ok(user);
             }
             catch (UnauthorizedAccessException ex)
@@ -47,8 +47,10 @@ namespace GestaoLogistico.Controllers
             }
         }
 
+
+        // ==================== OPERAÇÕES CRUD ====================
         [Authorize]
-        [HttpPut("EditUser")]
+        [HttpPut("EditUser/{id}")]
         public async Task<IActionResult> EditUser([FromForm] UserEditFormDTO formDto)
         {
             try
@@ -73,6 +75,5 @@ namespace GestaoLogistico.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-
     }
 }
