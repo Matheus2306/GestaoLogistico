@@ -1,4 +1,5 @@
 ﻿using GestaoLogistico.Models;
+using GestaoLogistico.Models.Empresa;
 using GestaoLogistico.Models.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -13,12 +14,10 @@ namespace GestaoLogistico.Data
         {
         }
 
-        // 📦 DbSets para entidades de Gestão Logística (adicione conforme necessário)
-        // public DbSet<Produto> Produtos { get; set; }
-        // public DbSet<Estoque> Estoques { get; set; }
-        // public DbSet<Pedido> Pedidos { get; set; }
-        // public DbSet<Fornecedor> Fornecedores { get; set; }
-        // public DbSet<Transportadora> Transportadoras { get; set; }
+        // 📦 DbSets para entidades de Gestão Logística
+        public DbSet<Empresa> Empresas { get; set; }
+        public DbSet<EmpresaEmail> EmpresaEmails { get; set; }
+        public DbSet<EmpresaTelefone> EmpresaTelefones { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -27,11 +26,73 @@ namespace GestaoLogistico.Data
             // 🔧 Configurações do Identity (personalizar tabelas)
             ConfigureIdentityTables(modelBuilder);
 
+            // 🏢 Configurações de Empresa
+            ConfigureEmpresaTables(modelBuilder);
+
             // 🔍 Aplicar configurações de entidades (caso você use IEntityTypeConfiguration)
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AplicationDbContext).Assembly);
 
             // 🗑️ Configurar soft delete global
             ConfigureSoftDelete(modelBuilder);
+        }
+
+        private void ConfigureEmpresaTables(ModelBuilder modelBuilder)
+        {
+            // Configurar Empresa
+            modelBuilder.Entity<Empresa>(entity =>
+            {
+                entity.ToTable("Empresas");
+                entity.HasKey(e => e.EmpresaId);
+
+                // Índices
+                entity.HasIndex(e => e.CNPJ)
+                    .IsUnique()
+                    .HasDatabaseName("IX_Empresas_CNPJ");
+
+                // Relacionamento com Emails
+                entity.HasMany(e => e.Emails)
+                    .WithOne(em => em.Empresa)
+                    .HasForeignKey(em => em.EmpresaId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Relacionamento com Telefones
+                entity.HasMany(e => e.Telefones)
+                    .WithOne(t => t.Empresa)
+                    .HasForeignKey(t => t.EmpresaId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Relacionamento com Usuários
+                entity.HasMany(e => e.Usuarios)
+                    .WithOne(u => u.Empresa)
+                    .HasForeignKey(u => u.EmpresaId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                // Relacionamento com Usuário Responsável
+                entity.HasOne(e => e.UsuarioResponsavel)
+                    .WithMany()
+                    .HasForeignKey(e => e.UsuarioResponsavelId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // Configurar EmpresaEmail
+            modelBuilder.Entity<EmpresaEmail>(entity =>
+            {
+                entity.ToTable("EmpresaEmails");
+                entity.HasKey(e => e.Id);
+
+                entity.HasIndex(e => new { e.EmpresaId, e.Email })
+                    .HasDatabaseName("IX_EmpresaEmails_EmpresaId_Email");
+            });
+
+            // Configurar EmpresaTelefone
+            modelBuilder.Entity<EmpresaTelefone>(entity =>
+            {
+                entity.ToTable("EmpresaTelefones");
+                entity.HasKey(e => e.Id);
+
+                entity.HasIndex(e => new { e.EmpresaId, e.Numero })
+                    .HasDatabaseName("IX_EmpresaTelefones_EmpresaId_Numero");
+            });
         }
 
         private void ConfigureIdentityTables(ModelBuilder modelBuilder)

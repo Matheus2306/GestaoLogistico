@@ -1,6 +1,7 @@
 using AutoMapper;
 using GestaoLogistico.DTOs.UsersDTO;
 using GestaoLogistico.Models;
+using GestaoLogistico.Models.Empresa;
 using System.Diagnostics;
 using System.Net;
 
@@ -60,6 +61,31 @@ namespace GestaoLogistico.Mappings
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
                 .ForMember(dest => dest.UrlFoto, opt => opt.Ignore());
+
+            // Mappings de Empresa
+            CreateMap<DTOs.EmpresaDTO.CriarEmpresaDTO, Empresa>()
+                .ForMember(dest => dest.EmpresaId, opt => opt.Ignore())
+                .ForMember(dest => dest.Ativo, opt => opt.Ignore())
+                .ForMember(dest => dest.UsuarioResponsavelId, opt => opt.Ignore())
+                .ForMember(dest => dest.UsuarioResponsavel, opt => opt.Ignore())
+                .ForMember(dest => dest.Emails, opt => opt.Ignore())
+                .ForMember(dest => dest.Telefones, opt => opt.Ignore())
+                .ForMember(dest => dest.Usuarios, opt => opt.Ignore())
+                .ForMember(dest => dest.CriadoEm, opt => opt.Ignore())
+                .ForMember(dest => dest.AtualizadoEm, opt => opt.Ignore())
+                .ForMember(dest => dest.CriadoPorId, opt => opt.Ignore())
+                .ForMember(dest => dest.AtualizadoPorId, opt => opt.Ignore())
+                .ForMember(dest => dest.Excluido, opt => opt.Ignore())
+                .ForMember(dest => dest.ExcluidoEm, opt => opt.Ignore())
+                .ForMember(dest => dest.ExcluidoPorId, opt => opt.Ignore());
+
+            CreateMap<Empresa, DTOs.EmpresaDTO.EmpresaDTOCompleto>()
+                .ForMember(dest => dest.Emails, opt => opt.MapFrom(src => src.Emails))
+                .ForMember(dest => dest.Telefones, opt => opt.MapFrom(src => src.Telefones))
+                .ForMember(dest => dest.UsuarioResponsavelNome, opt => opt.MapFrom(src => src.UsuarioResponsavel != null ? src.UsuarioResponsavel.NomeCompleto : null));
+
+            CreateMap<EmpresaEmail, DTOs.EmpresaDTO.EmpresaEmailDTO>();
+            CreateMap<EmpresaTelefone, DTOs.EmpresaDTO.EmpresaTelefoneDTO>();
         }
     }
 }

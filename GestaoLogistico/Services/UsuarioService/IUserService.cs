@@ -28,5 +28,32 @@ namespace GestaoLogistico.Services.UsuarioService
         /// <param name="dto">DTO contendo as informações atualizadas do usuário</param>
         /// <returns>O DTO do usuário atualizado</returns>
         Task<UserEditFormDTO> EditUser(UserEditFormDTO dto);
+
+        /// <summary>
+        /// Cria um novo usuário vinculado a uma empresa.
+        /// </summary>
+        /// <param name="dto">DTO contendo as informações do novo usuário</param>
+        /// <returns>O DTO completo do usuário criado</returns>
+        Task<UserDTOcompleto> CreateUserByCompany(CreateUserByCompanyDTO dto);
+
+        /// <summary>
+        /// Atribui uma role a um usuário existente.
+        /// </summary>
+        /// <param name="dto">DTO contendo o ID do usuário e a role a ser atribuída</param>
+        /// <returns>True se a operação foi bem-sucedida</returns>
+        Task<bool> AssignRoleToUser(AssignRoleDTO dto);
+
+        /// <summary>
+        /// Remove uma role de um usuário existente.
+        /// </summary>
+        /// <param name="dto">DTO contendo o ID do usuário e a role a ser removida</param>
+        /// <returns>True se a operação foi bem-sucedida</returns>
+        Task<bool> RemoveRoleFromUser(AssignRoleDTO dto);
+
+        /// <summary>
+        /// Retorna todas as roles disponíveis no sistema, exceto Administrador.
+        /// </summary>
+        /// <returns>Lista de roles disponíveis</returns>
+        Task<IEnumerable<string>> GetAvailableRoles();
     }
 }

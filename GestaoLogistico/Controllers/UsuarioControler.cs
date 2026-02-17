@@ -75,5 +75,121 @@ namespace GestaoLogistico.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        // ==================== FIM OPERAÇÕES CRUD ====================
+
+        //===================== OPERAÇÕES DE VINCULO DE USUÁRIO A EMPRESA =========================
+
+        /// <summary>
+        /// Cria um novo usuário vinculado à empresa autenticada
+        /// </summary>
+        [Authorize(Roles = "Empresa")]
+        [HttpPost("CreateUser")]
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserByCompanyDTO dto)
+        {
+            try
+            {
+                var result = await _userService.CreateUserByCompany(dto);
+                return CreatedAtAction(nameof(GetAllUsers), new { id = result.Id }, result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Erro interno ao criar usuário.", details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Atribui uma role a um usuário existente
+        /// </summary>
+        [Authorize(Roles = "Empresa")]
+        [HttpPost("AssignRole")]
+        public async Task<IActionResult> AssignRole([FromBody] AssignRoleDTO dto)
+        {
+            try
+            {
+                var result = await _userService.AssignRoleToUser(dto);
+                if (result)
+                {
+                    return Ok(new { message = "Role atribuída com sucesso." });
+                }
+                return BadRequest(new { message = "Falha ao atribuir role." });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Erro interno ao atribuir role.", details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Remove uma role de um usuário existente
+        /// </summary>
+        [Authorize(Roles = "Empresa")]
+        [HttpPost("RemoveRole")]
+        public async Task<IActionResult> RemoveRole([FromBody] AssignRoleDTO dto)
+        {
+            try
+            {
+                var result = await _userService.RemoveRoleFromUser(dto);
+                if (result)
+                {
+                    return Ok(new { message = "Role removida com sucesso." });
+                }
+                return BadRequest(new { message = "Falha ao remover role." });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Erro interno ao remover role.", details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Retorna todas as roles disponíveis para atribuição (exceto Administrador)
+        /// </summary>
+        [Authorize(Roles = "Empresa")]
+        [HttpGet("AvailableRoles")]
+        public async Task<IActionResult> GetAvailableRoles()
+        {
+            try
+            {
+                var roles = await _userService.GetAvailableRoles();
+                return Ok(roles);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Erro interno ao buscar roles.", details = ex.Message });
+            }
+        }
     }
 }

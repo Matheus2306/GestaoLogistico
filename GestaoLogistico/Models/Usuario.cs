@@ -1,6 +1,8 @@
 ﻿using GestaoLogistico.Models.Interfaces;
+using GestaoLogistico.Models.EmpresaOrg;
 using Microsoft.AspNetCore.Identity;
 using System.Diagnostics.CodeAnalysis;
+using EmpresaClass = GestaoLogistico.Models.EmpresaOrg.Empresa;
 
 namespace GestaoLogistico.Models
 {
@@ -26,6 +28,10 @@ namespace GestaoLogistico.Models
         public required string NomeCompleto { get; set; }
         public required string CPF { get; set; }
         public string? UrlFoto { get; set; } = string.Empty;
+
+        // Relacionamento com Empresa
+        public Guid? EmpresaId { get; set; }
+        public EmpresaClass? Empresa { get; set; }
 
         // Propriedades de Auditoria
         public DateTime CriadoEm { get; set; }

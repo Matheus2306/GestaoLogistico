@@ -17,13 +17,15 @@ namespace GestaoLogistico.Repositories.UsuarioRepository
         private readonly AplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly UserManager<Usuario> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UsuarioRepository(AplicationDbContext context, IMapper mapper, UserManager<Usuario> userManager, IHttpContextAccessor httpContextAccessor)
+        public UsuarioRepository(AplicationDbContext context, IMapper mapper, UserManager<Usuario> userManager, RoleManager<IdentityRole> roleManager, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _mapper = mapper;
             _userManager = userManager;
+            _roleManager = roleManager;
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -75,6 +77,45 @@ namespace GestaoLogistico.Repositories.UsuarioRepository
         {
             var usuario = await _context.Users.FindAsync(userId);
             return usuario;
+        }
+
+        public async Task<Usuario?> GetUserByEmailAsync(string email)
+        {
+            return await _userManager.FindByEmailAsync(email);
+        }
+
+        public async Task<(bool Success, IEnumerable<string> Errors, Usuario? User)> CreateUserAsync(Usuario user, string password)
+        {
+            var result = await _userManager.CreateAsync(user, password);
+
+            if (result.Succeeded)
+            {
+                return (true, Enumerable.Empty<string>(), user);
+            }
+
+            return (false, result.Errors.Select(e => e.Description), null);
+        }
+
+        public async Task<bool> AddUserToRoleAsync(Usuario user, string role)
+        {
+            var result = await _userManager.AddToRoleAsync(user, role);
+            return result.Succeeded;
+        }
+
+        public async Task<bool> RemoveUserFromRoleAsync(Usuario user, string role)
+        {
+            var result = await _userManager.RemoveFromRoleAsync(user, role);
+            return result.Succeeded;
+        }
+
+        public async Task<bool> RoleExistsAsync(string role)
+        {
+            return await _roleManager.RoleExistsAsync(role);
+        }
+
+        public async Task<IEnumerable<string>> GetAllRolesAsync()
+        {
+            return await _roleManager.Roles.Select(r => r.Name!).ToListAsync();
         }
 
         // ============== Metodos CRUD ==============
