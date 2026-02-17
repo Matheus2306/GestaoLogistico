@@ -4,11 +4,13 @@
     {
         private readonly IWebHostEnvironment _environment;
         private readonly ILogger<FileUploadService> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public FileUploadService(IWebHostEnvironment environment, ILogger<FileUploadService> logger)
+        public FileUploadService(IWebHostEnvironment environment, ILogger<FileUploadService> logger, IHttpContextAccessor httpContextAccessor)
         {
             _environment = environment;
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<string> SaveFileAsync(byte[] fileBytes, string fileName, string folder = "uploads")
@@ -107,7 +109,14 @@
                 return string.Empty;
             }
 
-            return filePath.StartsWith("/") ? filePath : $"/{filePath}";
+            var request = _httpContextAccessor.HttpContext?.Request;
+            if (request == null) 
+                return string.Empty;
+            
+            var baseUrl = $"{request.Scheme}://{request.Host}";
+            var fileUrl = $"{baseUrl}{filePath}";
+
+            return fileUrl;
         }
     }
 }

@@ -8,6 +8,15 @@ namespace GestaoLogistico.Services.UsuarioService
     public interface IUserService
     {
         /// <summary>
+        /// Asynchronously retrieves a complete list of all users.
+        /// </summary>
+        /// <remarks>This method may throw exceptions if the operation fails due to network issues or if
+        /// user data cannot be retrieved.</remarks>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a collection of <see cref="UserDTOcompleto"/>
+        /// objects with the details of all users.</returns>
+        Task<IEnumerable<UserDTOcompleto>> GetAllUsersAsync();
+
+        /// <summary>
         /// retorna as informações do usuário atualmente autenticado no sistema. 
         /// </summary>        
         /// <returns> O DTO do usuário atualmente autenticado</returns>

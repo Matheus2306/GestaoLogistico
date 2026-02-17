@@ -29,20 +29,17 @@ namespace GestaoLogistico.Repositories.UsuarioRepository
 
         public async Task<IEnumerable<UserDTOcompleto>> GetAllUsersAsync()
         {
-            var users = await _context.Users
-                .Select(u => new
-                {
-                    Usuario = u,
-                    Roles = _userManager.GetRolesAsync(u).Result // Obtém as roles do usuário
-                })
-                .ToListAsync();
+            // Primeiro, busca todos os usuários
+            var users = await _context.Users.ToListAsync();
 
-            var userDtos = users.Select(u =>
+            // Depois, mapeia cada usuário e busca suas roles separadamente
+            var userDtos = new List<UserDTOcompleto>();
+            foreach (var user in users)
             {
-                var dto = _mapper.Map<UserDTOcompleto>(u.Usuario);
-                dto.Roles = u.Roles;
-                return dto;
-            }).ToList();
+                var dto = _mapper.Map<UserDTOcompleto>(user);
+                dto.Roles = await _userManager.GetRolesAsync(user);
+                userDtos.Add(dto);
+            }
 
             return userDtos;
         }

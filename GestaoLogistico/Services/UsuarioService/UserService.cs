@@ -24,6 +24,19 @@ namespace GestaoLogistico.Services.UsuarioService
             _docValidatorService = docValidatorService;
         }
 
+        public async Task<IEnumerable<UserDTOcompleto>> GetAllUsersAsync()
+        {
+            var users = await _usuarioRepository.GetAllUsersAsync();
+
+            // Converte os caminhos das fotos para URLs completas
+            foreach (var user in users)
+            {
+                user.PhotoUrl = _fileUploadService.GetFileUrl(user.PhotoUrl);
+            }
+
+            return users;
+        }
+
         public async Task<UserSimpleDTO> GetCurrentUser()
         {
             var currentUserDto = await _usuarioRepository.GetCurrentUser();
@@ -36,7 +49,7 @@ namespace GestaoLogistico.Services.UsuarioService
             //converter o caminho da foto para uma URL completa
             currentUserDto.UrlPhoto = _fileUploadService.GetFileUrl(currentUserDto.UrlPhoto);
 
-            return _mapper.Map<UserSimpleDTO>(currentUserDto);
+            return currentUserDto;
         }
 
         //======================= CRUD ============================
