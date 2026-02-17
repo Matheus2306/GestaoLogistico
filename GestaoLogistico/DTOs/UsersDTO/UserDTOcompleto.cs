@@ -1,4 +1,4 @@
-﻿namespace GestaoLogistico.DTOs
+﻿namespace GestaoLogistico.DTOs.UsersDTO
 {
     public class UserDTOcompleto
     {

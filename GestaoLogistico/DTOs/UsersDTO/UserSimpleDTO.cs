@@ -1,8 +1,8 @@
-﻿namespace GestaoLogistico.DTOs
+﻿namespace GestaoLogistico.DTOs.UsersDTO
 {
     public class UserSimpleDTO
     {
-        public Guid Id { get; set; }
+        public string Id { get; set; }
         public string Nome { get; set; }
         public string UrlPhoto { get; set; }
         public string CPF { get; set; }

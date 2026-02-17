@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using GestaoLogistico.Data;
-using GestaoLogistico.DTOs;
+using GestaoLogistico.DTOs.UsersDTO;
 using GestaoLogistico.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -72,6 +72,19 @@ namespace GestaoLogistico.Repositories.UsuarioRepository
             userDto.Roles = await _userManager.GetRolesAsync(usuario);
 
             return userDto;
+        }
+
+        public async Task<Usuario?> GetUserByIdAsync(string userId)
+        {
+            var usuario = await _context.Users.FindAsync(userId);
+            return usuario;
+        }
+
+        // ============== Metodos CRUD ==============
+        public async Task SaveChangesAsync()
+        {
+            // Salva as alterações no banco de dados
+            await _context.SaveChangesAsync();
         }
     }
 }

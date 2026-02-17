@@ -1,6 +1,8 @@
 using GestaoLogistico.Data;
 using GestaoLogistico.Models;
 using GestaoLogistico.Repositories.UsuarioRepository;
+using GestaoLogistico.Services.FileService;
+using GestaoLogistico.Services.UsuarioService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -102,6 +104,10 @@ builder.Services.AddCors(options =>
 //registrar repositórios
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 
+//registrar serviços
+builder.Services.AddScoped<IfileUploadService, FileUploadService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
 //registrar AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
 
@@ -137,12 +143,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowAll"); 
-app.UseAuthentication();
-app.UseAuthorization();         
-
-
+app.UseCors("AllowAll");
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapIdentityApi<Usuario>();
 app.MapControllers();
