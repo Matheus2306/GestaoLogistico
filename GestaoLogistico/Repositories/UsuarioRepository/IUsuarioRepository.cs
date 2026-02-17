@@ -14,5 +14,10 @@ namespace GestaoLogistico.Repositories.UsuarioRepository
         /// </summary>
         Task<IEnumerable<UserDTOcompleto>> GetAllUsersAsync();
 
+        /// <summary>
+        /// retorna as informações básicas do usuário atual autenticado a partir do token JWT.
+        /// </summary>
+        Task<UserSimpleDTO> GetCurrentUser();
+
     }
 }

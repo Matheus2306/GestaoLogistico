@@ -16,11 +16,15 @@ namespace GestaoLogistico.Repositories.UsuarioRepository
     {
         private readonly AplicationDbContext _context;
         private readonly IMapper _mapper;
+        private readonly UserManager<Usuario> _userManager;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UsuarioRepository(AplicationDbContext context, IMapper mapper)
+        public UsuarioRepository(AplicationDbContext context, IMapper mapper, UserManager<Usuario> userManager, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _mapper = mapper;
+            _userManager = userManager;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<IEnumerable<UserDTOcompleto>> GetAllUsersAsync()
@@ -29,10 +33,7 @@ namespace GestaoLogistico.Repositories.UsuarioRepository
                 .Select(u => new
                 {
                     Usuario = u,
-                    Roles = _context.UserRoles
-                        .Where(ur => ur.UserId == u.Id)
-                        .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name)
-                        .ToList()
+                    Roles = _userManager.GetRolesAsync(u).Result // Obtém as roles do usuário
                 })
                 .ToListAsync();
 
@@ -44,6 +45,33 @@ namespace GestaoLogistico.Repositories.UsuarioRepository
             }).ToList();
 
             return userDtos;
+        }
+
+        public async Task<UserSimpleDTO> GetCurrentUser()
+        {
+            // Obtém o ID do usuário a partir do token Bearer
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                throw new UnauthorizedAccessException("Usuário não autenticado."); // Lança uma exceção se o usuário não estiver autenticado
+            }
+
+            // Busca o usuário no banco de dados
+            var usuario = await _context.Users.FindAsync(userId);
+
+            if (usuario == null)
+            {
+                throw new KeyNotFoundException($"Usuário com ID {userId} não encontrado."); // Lança uma exceção se o usuário não for encontrado
+            }
+
+            // Mapeia para DTO
+            var userDto = _mapper.Map<UserSimpleDTO>(usuario);
+
+            // Busca as roles do usuário
+            userDto.Roles = await _userManager.GetRolesAsync(usuario);
+
+            return userDto;
         }
     }
 }

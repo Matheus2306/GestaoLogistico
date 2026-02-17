@@ -25,6 +25,7 @@ namespace GestaoLogistico.Models
 
         public required string NomeCompleto { get; set; }
         public required string CPF { get; set; }
+        public string? UrlFoto { get; set; } = string.Empty;
 
         // Propriedades de Auditoria
         public DateTime CriadoEm { get; set; }

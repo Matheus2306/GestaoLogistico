@@ -42,6 +42,9 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
+// Adicionar HttpContextAccessor para acessar o HttpContext em serviços
+builder.Services.AddHttpContextAccessor();
+
 // Configurar Identity com endpoints de API
 builder.Services.AddIdentityApiEndpoints<Usuario>(options =>
 {

@@ -10,7 +10,7 @@ namespace GestaoLogistico.Data
             var userManager = serviceProvider.GetRequiredService<UserManager<Usuario>>();
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-            string[] roles = new string[] { "Manager", "Usuário principal", "Usuario Gestor de armazem" };
+            string[] roles = new string[] { "Administrador", "Empresa", "Gestor Logístico", "Operador Logístico" };
 
             foreach (var role in roles)
             {
@@ -44,7 +44,7 @@ namespace GestaoLogistico.Data
                 
                 if (result.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(adminUser, "Manager");
+                    await userManager.AddToRoleAsync(adminUser, "Administrador");
                 }
                 else
                 {

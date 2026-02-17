@@ -1,5 +1,6 @@
 ﻿using GestaoLogistico.Models;
 using GestaoLogistico.Repositories.UsuarioRepository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -19,11 +20,28 @@ namespace GestaoLogistico.Controllers
             _userRepository = UserRepository;
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
             var users = await _userRepository.GetAllUsersAsync();
             return Ok(users);
         }
+
+        [Authorize]
+        [HttpGet("Current")]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            try
+            {
+                var user = await _userRepository.GetCurrentUser();
+                return Ok(user);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
+
     }
 }
