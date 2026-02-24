@@ -76,6 +76,24 @@ namespace GestaoLogistico.Controllers
             }
         }
 
+        [HttpPost("CreateUser")]
+        public async Task<IActionResult> CreateUser([FromBody] UserCreateDTO dto)
+        {
+            try
+            {
+                var result = await _userService.CreateUserAsync(dto);
+                return CreatedAtAction(nameof(GetAllUsers), new { id = result.Id }, result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Erro interno ao criar usuário.", details = ex.Message });
+            }
+        }
+
         // ==================== FIM OPERAÇÕES CRUD ====================
 
         //===================== OPERAÇÕES DE VINCULO DE USUÁRIO A EMPRESA =========================
@@ -84,7 +102,7 @@ namespace GestaoLogistico.Controllers
         /// Cria um novo usuário vinculado à empresa autenticada
         /// </summary>
         [Authorize(Roles = "Empresa")]
-        [HttpPost("CreateUser")]
+        [HttpPost("CreateUserByCompany")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserByCompanyDTO dto)
         {
             try

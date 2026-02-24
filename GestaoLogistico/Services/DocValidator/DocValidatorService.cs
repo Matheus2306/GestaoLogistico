@@ -2,21 +2,23 @@
 {
     public class DocValidatorService : IDocValidatorService
     {
-        public bool ValidarCPF(string cpf)
+ 
+
+        public string ValidarCPF(string cpf)
         {
             if (string.IsNullOrWhiteSpace(cpf))
-                return false;
+                return null;
 
             cpf = cpf.Replace(".", "").Replace("-", "").Trim();
 
             if (cpf.Length != 11)
-                return false;
+                return null;
 
             if (!cpf.All(char.IsDigit))
-                return false;
+                return null;
 
             if (cpf.Distinct().Count() == 1)
-                return false;
+                return null;
 
             int[] multiplicador1 = [10, 9, 8, 7, 6, 5, 4, 3, 2];
             int[] multiplicador2 = [11, 10, 9, 8, 7, 6, 5, 4, 3, 2];
@@ -42,24 +44,25 @@
 
             digito += resto.ToString();
 
-            return cpf.EndsWith(digito);
+            return cpf;
         }
 
-        public bool ValidarCNPJ(string cnpj)
+        public string ValidarCNPJ(string cnpj)
         {
             if (string.IsNullOrWhiteSpace(cnpj))
-                return false;
+                return string.Empty;
 
             cnpj = cnpj.Replace(".", "").Replace("/", "").Replace("-", "").Trim();
 
             if (cnpj.Length != 14)
-                return false;
+                return null;
 
             if (!cnpj.All(char.IsDigit))
-                return false;
+                return null;
+
 
             if (cnpj.Distinct().Count() == 1)
-                return false;
+                return null;
 
             int[] multiplicador1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
             int[] multiplicador2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
@@ -85,7 +88,7 @@
 
             digito += resto.ToString();
 
-            return cnpj.EndsWith(digito);
+            return cnpj;
         }
     }
 }

@@ -34,19 +34,27 @@ namespace GestaoLogistico.Mappings
 
             // O mapeamento acima é responsável por mapear as propriedades do modelo de usuário (Usuario) para o DTO simples (UserSimpleDTO), incluindo a formatação da data de atualização e a exclusão do mapeamento das roles, que serão preenchidas manualmente posteriormente. .ForAllOtherMembers(opt => opt.Ignore()); // Ignora outras propriedades que não estão mapeadas
 
-            CreateMap<UserEditCreateDTO, Usuario>()
-                .ForMember(dest => dest.NomeCompleto, opt => opt.MapFrom(src => src.Nome))
-                .ForMember(dest => dest.CPF, opt => opt.MapFrom(src => src.CPF))
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
-                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
-                .ForMember(dest => dest.UrlFoto, opt => opt.Ignore());
+            // Mapeia UserCreateDTO para Usuario usando construtor parametrizado
+            CreateMap<UserCreateDTO, Usuario>()
+                .ConstructUsing(src => new Usuario(src.Nome!, src.CPF!, src.Email!))
+                .ForMember(dest => dest.NomeCompleto, opt => opt.Ignore()) // Já definido no construtor
+                .ForMember(dest => dest.CPF, opt => opt.Ignore()) // Já definido no construtor
+                .ForMember(dest => dest.Email, opt => opt.Ignore()) // Já definido no construtor
+                .ForMember(dest => dest.UserName, opt => opt.Ignore()) // Já definido no construtor
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber));
 
-            CreateMap<Usuario, UserEditCreateDTO>()
+            // Mapeia CreateUserByCompanyDTO para Usuario usando construtor parametrizado
+            CreateMap<CreateUserByCompanyDTO, Usuario>()
+                .ConstructUsing(src => new Usuario(src.NomeCompleto, src.CPF, src.Email))
+                .ForMember(dest => dest.NomeCompleto, opt => opt.Ignore()) // Já definido no construtor
+                .ForMember(dest => dest.CPF, opt => opt.Ignore()) // Já definido no construtor
+                .ForMember(dest => dest.Email, opt => opt.Ignore()) // Já definido no construtor
+                .ForMember(dest => dest.UserName, opt => opt.Ignore()) // Já definido no construtor
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber));
+
+            CreateMap<Usuario, UserCreateDTO>()
                 .ForMember(dest => dest.Nome, opt => opt.MapFrom(src => src.NomeCompleto))
-                .ForMember(dest => dest.CPF, opt => opt.MapFrom(src => src.CPF))
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
-                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
-                .ForMember(dest => dest.UrlPhoto, opt => opt.Ignore());
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber));
 
             CreateMap<Usuario, UserEditFormDTO>()
                 .ForMember(dest => dest.Nome, opt => opt.MapFrom(src => src.NomeCompleto))

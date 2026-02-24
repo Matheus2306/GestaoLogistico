@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using GestaoLogistico.DTOs.UsersDTO;
+using GestaoLogistico.Models;
 using GestaoLogistico.Repositories.UsuarioRepository;
 using GestaoLogistico.Services.DocValidator;
 using GestaoLogistico.Services.FileService;
@@ -32,6 +33,16 @@ namespace GestaoLogistico.Services.UsuarioService
             foreach (var user in users)
             {
                 user.PhotoUrl = _fileUploadService.GetFileUrl(user.PhotoUrl);
+            }
+
+            //transforma o horario UTC para o horário local do Brasil
+            foreach (var user in users)
+            {
+                if (DateTime.TryParse(user.atualizadoEm, out var atualizadoEmUtc))
+                {
+                    var atualizadoEmLocal = TimeZoneInfo.ConvertTimeFromUtc(atualizadoEmUtc, TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time"));
+                    user.atualizadoEm = atualizadoEmLocal.ToString("yyyy-MM-dd HH:mm:ss");
+                }
             }
 
             return users;
@@ -73,7 +84,7 @@ namespace GestaoLogistico.Services.UsuarioService
 
             //verifica se o CPF é válido
             var cpfValidado = _docValidatorService.ValidarCPF(dto.CPF);
-            if (!cpfValidado)
+            if (cpfValidado == null)
             {
                 _logger.LogWarning("Invalid CPF provided for user ID {UserId}.", currentUserDto.Id);
                 throw new ArgumentException("CPF inválido.");
@@ -127,6 +138,39 @@ namespace GestaoLogistico.Services.UsuarioService
             return _mapper.Map<UserEditFormDTO>(user);
         }
 
+        public async Task<UserSimpleDTO> CreateUserAsync(UserCreateDTO dto)
+        {
+            // Verifica se o email já existe
+            var existingUser = await _usuarioRepository.GetUserByEmailAsync(dto.Email);
+            if (existingUser != null) 
+                throw new ArgumentException("Este email já está cadastrado.");
+
+            // Valida o CPF
+            if (_docValidatorService.ValidarCPF(dto.CPF) == null)
+            {
+                _logger.LogWarning("Invalid CPF provided: {CPF}", dto.CPF);
+                throw new ArgumentException("CPF inválido.");
+            }
+
+
+            // Usa o AutoMapper para mapear o DTO para Usuario (usando o construtor parametrizado)
+            var newUser = _mapper.Map<Usuario>(dto);
+            newUser.EmailConfirmed = false;
+            newUser.CriadoEm = DateTime.UtcNow;
+
+            var (success, errors, user) = await _usuarioRepository.CreateUserAsync(newUser, dto.Password);
+
+            if(!success)
+            {
+                var errorMessages = string.Join(", ", errors);
+                _logger.LogWarning("Failed to create user: {Errors}", errorMessages);
+                throw new ArgumentException($"Erro ao criar usuário: {errorMessages}");
+            }
+
+            _logger.LogInformation("User {UserId} created successfully.", user!.Id);
+            return _mapper.Map<UserSimpleDTO>(user);
+        }
+
         public async Task<UserDTOcompleto> CreateUserByCompany(CreateUserByCompanyDTO dto)
         {
             // Verifica se a empresa está autenticada e tem a role "Empresa"
@@ -139,7 +183,7 @@ namespace GestaoLogistico.Services.UsuarioService
             }
 
             // Valida o CPF
-            if (!_docValidatorService.ValidarCPF(dto.CPF))
+            if (_docValidatorService.ValidarCPF(dto.CPF) == null)
             {
                 _logger.LogWarning("Invalid CPF provided: {CPF}", dto.CPF);
                 throw new ArgumentException("CPF inválido.");
@@ -168,18 +212,11 @@ namespace GestaoLogistico.Services.UsuarioService
                 throw new ArgumentException($"A role '{dto.Role}' não existe no sistema.");
             }
 
-            // Cria o novo usuário
-            var newUser = new Models.Usuario
-            {
-                UserName = dto.Email,
-                Email = dto.Email,
-                NomeCompleto = dto.NomeCompleto,
-                CPF = dto.CPF,
-                PhoneNumber = dto.PhoneNumber,
-                EmailConfirmed = false,
-                CriadoEm = DateTime.UtcNow,
-                CriadoPorId = currentUser.Id
-            };
+            // Usa o AutoMapper para mapear o DTO para Usuario (usando o construtor parametrizado)
+            var newUser = _mapper.Map<Usuario>(dto);
+            newUser.EmailConfirmed = false;
+            newUser.CriadoEm = DateTime.UtcNow;
+            newUser.CriadoPorId = currentUser.Id;
 
             var (success, errors, user) = await _usuarioRepository.CreateUserAsync(newUser, dto.Password);
 
@@ -206,6 +243,7 @@ namespace GestaoLogistico.Services.UsuarioService
 
             return userDto;
         }
+
 
         public async Task<bool> AssignRoleToUser(AssignRoleDTO dto)
         {

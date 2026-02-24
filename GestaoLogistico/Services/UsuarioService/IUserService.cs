@@ -7,6 +7,8 @@ namespace GestaoLogistico.Services.UsuarioService
     /// </summary>
     public interface IUserService
     {
+        // ==================== Consultas ====================
+
         /// <summary>
         /// Asynchronously retrieves a complete list of all users.
         /// </summary>
@@ -22,6 +24,9 @@ namespace GestaoLogistico.Services.UsuarioService
         /// <returns> O DTO do usuário atualmente autenticado</returns>
         Task<UserSimpleDTO> GetCurrentUser();
 
+        // ==================== Fim Consultas ====================
+        // ==================== Comandos CRUD ====================
+
         /// <summary>
         /// Edita as informações de um usuário existente no sistema.
         /// </summary>
@@ -35,6 +40,16 @@ namespace GestaoLogistico.Services.UsuarioService
         /// <param name="dto">DTO contendo as informações do novo usuário</param>
         /// <returns>O DTO completo do usuário criado</returns>
         Task<UserDTOcompleto> CreateUserByCompany(CreateUserByCompanyDTO dto);
+
+        /// <summary>
+        /// cria um novo usuário sem vínculo com empresa e sem atribuição de roles.
+        /// </summary>
+        /// <param name="dto">DTO contendo as informações do novo usuário</param>
+        /// <returns>O DTO simples do usuário criado</returns>
+        Task<UserSimpleDTO> CreateUserAsync(UserCreateDTO dto);
+
+        // ==================== Fim Comandos CRUD ====================
+        // ==================== Gerenciamento de Roles ====================
 
         /// <summary>
         /// Atribui uma role a um usuário existente.
@@ -55,5 +70,7 @@ namespace GestaoLogistico.Services.UsuarioService
         /// </summary>
         /// <returns>Lista de roles disponíveis</returns>
         Task<IEnumerable<string>> GetAvailableRoles();
+
+        // ==================== Fim Gerenciamento de Roles ====================
     }
 }

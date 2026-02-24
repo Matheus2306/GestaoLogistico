@@ -2,7 +2,7 @@
 {
     public interface IDocValidatorService
     {
-        bool ValidarCPF(string cpf);
-        bool ValidarCNPJ(string cnpj);
+        string ValidarCPF(string cpf);
+        string ValidarCNPJ(string cnpj);
     }
 }

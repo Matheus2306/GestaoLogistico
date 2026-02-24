@@ -16,6 +16,7 @@ namespace GestaoLogistico.Models
         }
 
         // ✅ Construtor com parâmetros para criação manual
+        [SetsRequiredMembers]
         public Usuario(string nomeCompleto, string cpf, string email)
         {
             NomeCompleto = nomeCompleto;

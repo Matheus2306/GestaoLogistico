@@ -45,7 +45,7 @@ namespace GestaoLogistico.Services.EmpresaService
             }
 
             // 2. Validar CNPJ
-            if (!_docValidatorService.ValidarCNPJ(dto.CNPJ))
+            if (_docValidatorService.ValidarCNPJ(dto.CNPJ) == null)
             {
                 _logger.LogWarning("CNPJ inválido fornecido: {CNPJ} por usuário {UserId}", dto.CNPJ, currentUser.Id);
                 throw new ArgumentException("CNPJ inválido.");
