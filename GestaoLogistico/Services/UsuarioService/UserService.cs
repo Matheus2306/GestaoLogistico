@@ -4,6 +4,7 @@ using GestaoLogistico.Models;
 using GestaoLogistico.Repositories.UsuarioRepository;
 using GestaoLogistico.Services.DocValidator;
 using GestaoLogistico.Services.FileService;
+using GestaoLogistico.Services.FormatService;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GestaoLogistico.Services.UsuarioService
@@ -15,14 +16,16 @@ namespace GestaoLogistico.Services.UsuarioService
         private readonly IMapper _mapper;
         private readonly IfileUploadService _fileUploadService;
         private readonly IDocValidatorService _docValidatorService;
+        private readonly IFormatService _formatService;
 
-        public UserService(ILogger<UserService> logger, IUsuarioRepository usuarioRepository, IMapper mapper, IfileUploadService fileUploadService, IDocValidatorService docValidatorService)
+        public UserService(ILogger<UserService> logger, IUsuarioRepository usuarioRepository, IMapper mapper, IfileUploadService fileUploadService, IDocValidatorService docValidatorService, IFormatService formatService)
         {
             _logger = logger;
             _usuarioRepository = usuarioRepository;
             _mapper = mapper;
             _fileUploadService = fileUploadService;
             _docValidatorService = docValidatorService;
+            _formatService = formatService;
         }
 
         public async Task<IEnumerable<UserDTOcompleto>> GetAllUsersAsync()
@@ -33,16 +36,17 @@ namespace GestaoLogistico.Services.UsuarioService
             foreach (var user in users)
             {
                 user.PhotoUrl = _fileUploadService.GetFileUrl(user.PhotoUrl);
-            }
-
-            //transforma o horario UTC para o horário local do Brasil
-            foreach (var user in users)
-            {
+            
+                //transforma o horario UTC para o horário local do Brasil
                 if (DateTime.TryParse(user.atualizadoEm, out var atualizadoEmUtc))
                 {
                     var atualizadoEmLocal = TimeZoneInfo.ConvertTimeFromUtc(atualizadoEmUtc, TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time"));
                     user.atualizadoEm = atualizadoEmLocal.ToString("yyyy-MM-dd HH:mm:ss");
                 }
+
+                //Adiciona formatação para os campos cpf e telefone
+                user.CPF = _formatService.SetupFormatDocument(user.CPF);
+                user.PhoneNumber = _formatService.SetupFormatPhone(user.PhoneNumber) ;
             }
 
             return users;
@@ -59,6 +63,10 @@ namespace GestaoLogistico.Services.UsuarioService
 
             //converter o caminho da foto para uma URL completa
             currentUserDto.UrlPhoto = _fileUploadService.GetFileUrl(currentUserDto.UrlPhoto);
+
+            //Adiciona formatação para os campos cpf e telefone
+            currentUserDto.CPF = _formatService.SetupFormatDocument(currentUserDto.CPF);
+            currentUserDto.PhoneNumber = _formatService.SetupFormatPhone(currentUserDto.PhoneNumber);
 
             return currentUserDto;
         }
@@ -135,6 +143,10 @@ namespace GestaoLogistico.Services.UsuarioService
 
             _logger.LogInformation("User with ID {UserId} updated successfully.", user.Id);
 
+            //setup formatação para os campos cpf e telefone antes de retornar o DTO
+            user.PhoneNumber = _formatService.SetupFormatPhone(user.PhoneNumber);
+            user.CPF = _formatService.SetupFormatDocument(user.CPF);
+
             return _mapper.Map<UserEditFormDTO>(user);
         }
 
@@ -168,6 +180,11 @@ namespace GestaoLogistico.Services.UsuarioService
             }
 
             _logger.LogInformation("User {UserId} created successfully.", user!.Id);
+
+            //Adiciona formatação para os campos cpf e telefone antes de retornar o DTO
+            user.PhoneNumber = _formatService.SetupFormatPhone(user.PhoneNumber);
+            user.CPF = _formatService.SetupFormatDocument(user.CPF);
+
             return _mapper.Map<UserSimpleDTO>(user);
         }
 
@@ -237,13 +254,14 @@ namespace GestaoLogistico.Services.UsuarioService
 
             _logger.LogInformation("User {UserId} created successfully by company {CompanyId}", user!.Id, currentUser.Id);
 
+
             // Retorna o DTO completo
             var userDto = _mapper.Map<UserDTOcompleto>(user);
             userDto.Roles = new List<string> { dto.Role };
+            userDto.CPF = _formatService.SetupFormatDocument(userDto.CPF);
 
             return userDto;
         }
-
 
         public async Task<bool> AssignRoleToUser(AssignRoleDTO dto)
         {

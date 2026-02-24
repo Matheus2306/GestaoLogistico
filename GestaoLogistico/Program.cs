@@ -5,6 +5,7 @@ using GestaoLogistico.Repositories.UsuarioRepository;
 using GestaoLogistico.Services.DocValidator;
 using GestaoLogistico.Services.EmpresaService;
 using GestaoLogistico.Services.FileService;
+using GestaoLogistico.Services.FormatService;
 using GestaoLogistico.Services.UsuarioService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -113,6 +114,7 @@ builder.Services.AddScoped<IfileUploadService, FileUploadService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmpresaService, EmpresaService>();
 builder.Services.AddScoped<IDocValidatorService, DocValidatorService>();
+builder.Services.AddScoped<IFormatService, FormatService>();
 
 //registrar AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
