@@ -5,6 +5,7 @@ using GestaoLogistico.Models.Empresas;
 using GestaoLogistico.Repositories.EmpresaRepository;
 using GestaoLogistico.Repositories.UsuarioRepository;
 using GestaoLogistico.Services.DocValidator;
+using GestaoLogistico.Services.FormatService;
 using Microsoft.AspNetCore.Identity;
 
 namespace GestaoLogistico.Services.EmpresaService
@@ -16,6 +17,7 @@ namespace GestaoLogistico.Services.EmpresaService
         private readonly UserManager<Usuario> _userManager;
         private readonly IMapper _mapper;
         private readonly IDocValidatorService _docValidatorService;
+        private readonly IFormatService _formatService;
         private readonly ILogger<EmpresaService> _logger;
 
         public EmpresaService(
@@ -24,13 +26,15 @@ namespace GestaoLogistico.Services.EmpresaService
             UserManager<Usuario> userManager,
             IMapper mapper,
             IDocValidatorService docValidatorService,
-            ILogger<EmpresaService> logger)
+            ILogger<EmpresaService> logger,
+            IFormatService formatService)
         {
             _empresaRepository = empresaRepository;
             _usuarioRepository = usuarioRepository;
             _userManager = userManager;
             _mapper = mapper;
             _docValidatorService = docValidatorService;
+            _formatService = formatService;
             _logger = logger;
         }
 
@@ -157,10 +161,49 @@ namespace GestaoLogistico.Services.EmpresaService
                 _logger.LogInformation("Empresa encontrada para o usuário {UserId}: {EmpresaId} - {RazaoSocial}",
                     currentUser.Id, empresa.EmpresaId, empresa.RazaoSocial);
                 var dto = _mapper.Map<EmpresaSimpleDTO>(empresa);
+                dto.CNPJ = _formatService.SetupFormatDocument(dto.CNPJ);
+                foreach (var telefone in dto.Telefones)
+                {
+                    telefone.Numero = _formatService.SetupFormatPhone(telefone.Numero);
+                }
                 empresaDTO.Add(dto);
             }
 
             return empresaDTO;
+        }
+
+        public async Task<bool> DeleteEmpresaAsync(Guid empresaId)
+        {
+            var currentUser = await _usuarioRepository.GetCurrentUser();
+            if (currentUser == null)
+            {
+                _logger.LogWarning("Tentativa de deletar empresa sem estar autenticado.");
+                throw new UnauthorizedAccessException("Usuário não autenticado.");
+            }
+            var empresa = await _empresaRepository.GetEmpresaCompletaAsync(empresaId);
+            if (empresa == null)
+            {
+                _logger.LogWarning("Empresa não encontrada para exclusão: {EmpresaId}", empresaId);
+                throw new KeyNotFoundException("Empresa não encontrada.");
+            }
+            if (empresa.UsuarioResponsavelId != currentUser.Id)
+            {
+                _logger.LogWarning("Usuário {UserId} tentou deletar empresa {EmpresaId} sem ser responsável.",
+                    currentUser.Id, empresaId);
+                throw new UnauthorizedAccessException("Você não tem permissão para deletar esta empresa.");
+            }
+            var result = await _empresaRepository.DeleteEmpresaAsync(empresaId);
+            if (result)
+            {
+                _logger.LogInformation("Empresa {EmpresaId} deletada com sucesso pelo usuário {UserId}.",
+                    empresaId, currentUser.Email);
+            }
+            else
+            {
+                _logger.LogError("Falha ao deletar empresa {EmpresaId} pelo usuário {UserId}.",
+                    empresaId, currentUser.Email);
+            }
+            return result;
         }
     }
 }

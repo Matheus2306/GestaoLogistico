@@ -19,5 +19,10 @@ namespace GestaoLogistico.Services.EmpresaService
         /// <returns>A task that represents the asynchronous operation, containing an instance of EmpresaSimpleDTO that holds the
         /// company information for the user.</returns>
         Task<IEnumerable<EmpresaSimpleDTO>> GetEmpresaByUserAsync();
+
+        /// <summary>
+        /// deleta uma empresa pelo seu ID. O usuário deve ser o responsável pela empresa para realizar a exclusão.
+        /// </summary>
+        Task<bool> DeleteEmpresaAsync(Guid empresaId);
     }
 }

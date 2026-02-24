@@ -19,7 +19,9 @@ namespace GestaoLogistico.Mappings
                         $"{src.Cidade} - {src.UF}",
                         $"CEP: {src.CEP}"
                     }.Where(s => !string.IsNullOrWhiteSpace(s)))))
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.EmpresaId));
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.EmpresaId))
+                .ForMember(dest => dest.Emails, opt => opt.MapFrom(src => src.Emails))
+                .ForMember(dest => dest.Telefones, opt =>opt.MapFrom(src => src.Telefones));
         }
     }
 }

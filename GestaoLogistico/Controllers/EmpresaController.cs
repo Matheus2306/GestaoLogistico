@@ -71,5 +71,29 @@ namespace GestaoLogistico.Controllers
             }
         }
 
+        [Authorize(Roles = "Empresa")]
+        [HttpDelete("DeleteCompany/{empresaId}")]
+        public async Task<IActionResult> DeleteCompany(Guid empresaId)
+        {
+            try
+            {
+                var result = await _empresaService.DeleteEmpresaAsync(empresaId);
+                if (result)
+                    return NoContent();
+                else
+                    return NotFound(new { message = "Empresa não encontrada ou não pode ser deletada." });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning("Tentativa não autorizada: {Message}", ex.Message);
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao deletar empresa");
+                return StatusCode(500, new { message = "Erro interno ao deletar empresa.", details = ex.Message });
+            }
+        }
+
     }
 }

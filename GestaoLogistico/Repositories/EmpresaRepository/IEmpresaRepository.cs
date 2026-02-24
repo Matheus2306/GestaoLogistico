@@ -30,5 +30,7 @@ namespace GestaoLogistico.Repositories.EmpresaRepository
         Task<Empresa?> GetEmpresaCompletaAsync(Guid empresaId);
 
         Task<IEnumerable<Empresa?>> GetAllEmpresaByUser(string UserId);
+
+        Task<bool> DeleteEmpresaAsync(Guid empresaId);
     }
 }

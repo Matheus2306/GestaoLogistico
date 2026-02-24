@@ -54,5 +54,17 @@ namespace GestaoLogistico.Repositories.EmpresaRepository
                 .Where(e => e.Usuarios.Any(u => u.Id == UserId))
                 .ToListAsync();
         }
+
+        public async Task<bool> DeleteEmpresaAsync(Guid empresaId)
+        {
+            var empresa = await _context.Empresas.FindAsync(empresaId);
+            if (empresa == null)
+            {
+                return false;
+            }
+            _context.Empresas.Remove(empresa);
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }
