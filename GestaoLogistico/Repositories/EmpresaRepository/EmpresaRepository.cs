@@ -45,5 +45,14 @@ namespace GestaoLogistico.Repositories.EmpresaRepository
                 .Include(e => e.UsuarioResponsavel)
                 .FirstOrDefaultAsync(e => e.EmpresaId == empresaId);
         }
+
+        /// Método para obter a empresa associada a um usuário específico
+        public async Task<IEnumerable<Empresa?>> GetAllEmpresaByUser(string UserId)
+        {
+            return await _context.Empresas
+                .Include(e => e.Usuarios)
+                .Where(e => e.Usuarios.Any(u => u.Id == UserId))
+                .ToListAsync();
+        }
     }
 }

@@ -49,5 +49,27 @@ namespace GestaoLogistico.Controllers
                 return StatusCode(500, new { message = "Erro interno ao criar empresa.", details = ex.Message });
             }
         }
+
+        [Authorize(Roles = "Empresa")]
+        [HttpGet]
+        public async Task<IEnumerable<EmpresaSimpleDTO>> GetEmpresas()
+        {
+            try
+            {
+                var result = await _empresaService.GetEmpresaByUserAsync();
+                return result;
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning("Tentativa não autorizada: {Message}", ex.Message);
+                throw; // Deixe o middleware de autenticação lidar com isso
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao obter empresas do usuário");
+                throw; // Deixe o middleware de tratamento de erros lidar com isso
+            }
+        }
+
     }
 }

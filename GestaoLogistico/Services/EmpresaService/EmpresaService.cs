@@ -133,5 +133,34 @@ namespace GestaoLogistico.Services.EmpresaService
             var empresaCompleta = await _empresaRepository.GetEmpresaCompletaAsync(empresa.EmpresaId);
             return _mapper.Map<EmpresaDTOCompleto>(empresaCompleta);
         }
+
+        public async Task<IEnumerable<EmpresaSimpleDTO>> GetEmpresaByUserAsync()
+        {
+            var currentUser = await _usuarioRepository.GetCurrentUser();
+            if (currentUser == null)
+            {
+                _logger.LogWarning("Tentativa de acessar empresa sem estar autenticado.");
+                throw new UnauthorizedAccessException("Usuário não autenticado.");
+            }
+
+            var empresas = await _empresaRepository.GetAllEmpresaByUser(currentUser.Id);
+            if (empresas == null)
+            {
+                _logger.LogInformation("Nenhuma empresa encontrada para o usuário {UserId}", currentUser.Id);
+                throw new KeyNotFoundException("Nenhuma empresa associada ao usuário.");
+            }
+
+            var empresaDTO = new List<EmpresaSimpleDTO>();
+
+            foreach (var empresa in empresas)
+            {
+                _logger.LogInformation("Empresa encontrada para o usuário {UserId}: {EmpresaId} - {RazaoSocial}",
+                    currentUser.Id, empresa.EmpresaId, empresa.RazaoSocial);
+                var dto = _mapper.Map<EmpresaSimpleDTO>(empresa);
+                empresaDTO.Add(dto);
+            }
+
+            return empresaDTO;
+        }
     }
 }

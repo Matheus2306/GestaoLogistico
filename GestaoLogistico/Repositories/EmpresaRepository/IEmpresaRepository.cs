@@ -28,5 +28,7 @@ namespace GestaoLogistico.Repositories.EmpresaRepository
         /// Busca empresa completa com relacionamentos
         /// </summary>
         Task<Empresa?> GetEmpresaCompletaAsync(Guid empresaId);
+
+        Task<IEnumerable<Empresa?>> GetAllEmpresaByUser(string UserId);
     }
 }
