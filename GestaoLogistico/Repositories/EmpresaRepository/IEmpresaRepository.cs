@@ -28,10 +28,5 @@ namespace GestaoLogistico.Repositories.EmpresaRepository
         /// Busca empresa completa com relacionamentos
         /// </summary>
         Task<Empresa?> GetEmpresaCompletaAsync(Guid empresaId);
-
-        /// <summary>
-        /// Salva alterações no banco
-        /// </summary>
-        Task SaveChangesAsync();
     }
 }

@@ -55,9 +55,14 @@ namespace GestaoLogistico.Repositories.UsuarioRepository
         Task<IEnumerable<string>> GetAllRolesAsync();
 
         /// <summary>
-        /// salva as alterações feitas no contexto do banco de dados.
+        /// Atualiza as informações de um usuário no banco de dados.
         /// </summary>
-        Task SaveChangesAsync();
+        Task<bool> UpdateUserAsync(Usuario user);
+
+        /// <summary>
+        /// Deleta um usuário do banco de dados.
+        /// </summary>
+        Task<bool> DeleteUserAsync(string userId);
 
     }
 }

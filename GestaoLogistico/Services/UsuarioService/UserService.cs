@@ -139,7 +139,13 @@ namespace GestaoLogistico.Services.UsuarioService
             // Aplicar o mapeamento do DTO para o usuário
             _mapper.Map(dto, user);
 
-            await _usuarioRepository.SaveChangesAsync();
+            // Salvar alterações no usuário
+            var success = await _usuarioRepository.UpdateUserAsync(user);
+            if (!success)
+            {
+                _logger.LogError("Failed to update user with ID {UserId}.", user.Id);
+                throw new InvalidOperationException("Erro ao atualizar usuário.");
+            }
 
             _logger.LogInformation("User with ID {UserId} updated successfully.", user.Id);
 
@@ -262,6 +268,34 @@ namespace GestaoLogistico.Services.UsuarioService
 
             return userDto;
         }
+
+        public async Task<bool> DeleteUserAsync(string userId)
+        {
+            var currentUser = await _usuarioRepository.GetCurrentUser();
+            if (currentUser == null)
+            {
+                _logger.LogWarning("Current user not found in token.");
+                throw new KeyNotFoundException($"Usuário não foi encontrado.");
+            }
+            // Permite deletar apenas se for o próprio usuário ou se for uma empresa
+            if (currentUser.Id != userId && !currentUser.Roles.Contains("Empresa"))
+            {
+                _logger.LogWarning("Unauthorized attempt to delete user {UserId} by user {CurrentUserId}.", userId, currentUser.Id);
+                throw new UnauthorizedAccessException("Você só pode deletar sua própria conta ou deve ser uma empresa para deletar outros usuários.");
+            }
+            var success = await _usuarioRepository.DeleteUserAsync(userId);
+            if (success)
+            {
+                _logger.LogInformation("User {UserId} deleted successfully by user {CurrentUserId}.", userId, currentUser.Id);
+            }
+            else
+            {
+                _logger.LogWarning("Failed to delete user {UserId} by user {CurrentUserId}.", userId, currentUser.Id);
+            }
+            return success;
+        }
+
+        //======================= Gerenciamento de Roles ============================
 
         public async Task<bool> AssignRoleToUser(AssignRoleDTO dto)
         {

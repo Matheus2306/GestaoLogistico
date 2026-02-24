@@ -94,6 +94,33 @@ namespace GestaoLogistico.Controllers
             }
         }
 
+        [Authorize]
+        [HttpDelete("DeleteUser/{id}")]
+        public async Task<IActionResult> DeleteUser(string id)
+        {
+            try
+            {
+                var result = await _userService.DeleteUserAsync(id);
+                if (result)
+                {
+                    return Ok(new { message = "Usuário deletado com sucesso." });
+                }
+                return BadRequest(new { message = "Falha ao deletar usuário." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Erro interno ao deletar usuário.", details = ex.Message });
+            }
+        }
+
         // ==================== FIM OPERAÇÕES CRUD ====================
 
         //===================== OPERAÇÕES DE VINCULO DE USUÁRIO A EMPRESA =========================

@@ -45,10 +45,5 @@ namespace GestaoLogistico.Repositories.EmpresaRepository
                 .Include(e => e.UsuarioResponsavel)
                 .FirstOrDefaultAsync(e => e.EmpresaId == empresaId);
         }
-
-        public async Task SaveChangesAsync()
-        {
-            await _context.SaveChangesAsync();
-        }
     }
 }

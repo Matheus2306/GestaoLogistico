@@ -48,6 +48,11 @@ namespace GestaoLogistico.Services.UsuarioService
         /// <returns>O DTO simples do usuário criado</returns>
         Task<UserSimpleDTO> CreateUserAsync(UserCreateDTO dto);
 
+        /// <summary>
+        /// Deleta um usuário existente do sistema.
+        /// </summary>
+        Task<bool> DeleteUserAsync(string userId);
+
         // ==================== Fim Comandos CRUD ====================
         // ==================== Gerenciamento de Roles ====================
 

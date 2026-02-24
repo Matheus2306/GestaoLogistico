@@ -77,7 +77,12 @@ namespace GestaoLogistico.Services.EmpresaService
 
             // 6. Vincular usuário à empresa
             usuario.EmpresaId = empresa.EmpresaId;
-            await _usuarioRepository.SaveChangesAsync();
+            var usuarioAtualizado = await _usuarioRepository.UpdateUserAsync(usuario);
+            if (!usuarioAtualizado)
+            {
+                _logger.LogError("Falha ao vincular usuário {UserId} à empresa {EmpresaId}", usuario.Id, empresa.EmpresaId);
+                throw new InvalidOperationException("Erro ao vincular usuário à empresa.");
+            }
 
             // 7. Atribuir role "Empresa" se não tiver
             if (!await _userManager.IsInRoleAsync(usuario, "Empresa"))

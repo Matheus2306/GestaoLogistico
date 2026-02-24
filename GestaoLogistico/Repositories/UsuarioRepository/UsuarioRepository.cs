@@ -119,10 +119,35 @@ namespace GestaoLogistico.Repositories.UsuarioRepository
         }
 
         // ============== Metodos CRUD ==============
-        public async Task SaveChangesAsync()
+        public async Task<bool> UpdateUserAsync(Usuario user)
         {
-            // Salva as alterações no banco de dados
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteUserAsync(string userId)
+        {
+            try
+            {
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null) return false;
+
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
