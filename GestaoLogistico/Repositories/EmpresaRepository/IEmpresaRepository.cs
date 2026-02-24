@@ -1,4 +1,4 @@
-using GestaoLogistico.Models.Empresa;
+using GestaoLogistico.Models.Empresas;
 
 namespace GestaoLogistico.Repositories.EmpresaRepository
 {

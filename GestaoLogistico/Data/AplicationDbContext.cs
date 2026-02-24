@@ -1,5 +1,5 @@
 ﻿using GestaoLogistico.Models;
-using GestaoLogistico.Models.Empresa;
+using GestaoLogistico.Models.Empresas;
 using GestaoLogistico.Models.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;

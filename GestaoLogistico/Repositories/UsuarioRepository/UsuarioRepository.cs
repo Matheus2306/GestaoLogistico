@@ -32,7 +32,7 @@ namespace GestaoLogistico.Repositories.UsuarioRepository
         public async Task<IEnumerable<UserDTOcompleto>> GetAllUsersAsync()
         {
             // Primeiro, busca todos os usuários
-            var users = await _context.Users.ToListAsync();
+            var users = await _context.Users.Include(e => e.Empresa).ToListAsync();
 
             // Depois, mapeia cada usuário e busca suas roles separadamente
             var userDtos = new List<UserDTOcompleto>();

@@ -1,5 +1,5 @@
 using GestaoLogistico.Data;
-using GestaoLogistico.Models.Empresa;
+using GestaoLogistico.Models.Empresas;
 using Microsoft.EntityFrameworkCore;
 
 namespace GestaoLogistico.Repositories.EmpresaRepository

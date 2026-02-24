@@ -1,8 +1,7 @@
-﻿using GestaoLogistico.Models.Empresa;
-using GestaoLogistico.Models.Interfaces;
+﻿using GestaoLogistico.Models.Interfaces;
 using System.ComponentModel.DataAnnotations;
 
-namespace GestaoLogistico.Models.EmpresaOrg
+namespace GestaoLogistico.Models.Empresas
 {
     public class Empresa : IAuditavel, ISoftDelete
     {
@@ -72,3 +71,4 @@ namespace GestaoLogistico.Models.EmpresaOrg
         public string? ExcluidoPorId { get; set; }
     }
 }
+

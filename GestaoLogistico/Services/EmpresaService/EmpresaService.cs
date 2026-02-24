@@ -1,7 +1,7 @@
 using AutoMapper;
 using GestaoLogistico.DTOs.EmpresaDTO;
 using GestaoLogistico.Models;
-using GestaoLogistico.Models.Empresa;
+using GestaoLogistico.Models.Empresas;
 using GestaoLogistico.Repositories.EmpresaRepository;
 using GestaoLogistico.Repositories.UsuarioRepository;
 using GestaoLogistico.Services.DocValidator;

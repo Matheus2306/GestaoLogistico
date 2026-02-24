@@ -1,7 +1,7 @@
 using AutoMapper;
 using GestaoLogistico.DTOs.UsersDTO;
 using GestaoLogistico.Models;
-using GestaoLogistico.Models.Empresa;
+using GestaoLogistico.Models.Empresas;
 using System.Diagnostics;
 using System.Net;
 

@@ -1,7 +1,7 @@
-using GestaoLogistico.Models.Interfaces;
+﻿using GestaoLogistico.Models.Interfaces;
 using System.ComponentModel.DataAnnotations;
 
-namespace GestaoLogistico.Models.Empresa
+namespace GestaoLogistico.Models.Empresas
 {
     public class EmpresaTelefone : IAuditavel, ISoftDelete
     {
