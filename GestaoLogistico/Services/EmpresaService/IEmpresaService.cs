@@ -9,7 +9,7 @@ namespace GestaoLogistico.Services.EmpresaService
         /// </summary>
         /// <param name="dto">Dados da empresa</param>
         /// <returns>Dados completos da empresa criada</returns>
-        Task<EmpresaDTOCompleto> CriarEmpresaAsync(CriarEmpresaDTO dto);
+        Task<EmpresaSimpleDTO> CriarEmpresaAsync(CriarEmpresaDTO dto);
 
         /// <summary>
         /// Retrieves the simple representation of the company associated with the current user.

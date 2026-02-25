@@ -43,6 +43,7 @@ namespace GestaoLogistico.Repositories.EmpresaRepository
                 .Include(e => e.Emails)
                 .Include(e => e.Telefones)
                 .Include(e => e.UsuarioResponsavel)
+                .AsSplitQuery()
                 .FirstOrDefaultAsync(e => e.EmpresaId == empresaId);
         }
 
@@ -52,6 +53,23 @@ namespace GestaoLogistico.Repositories.EmpresaRepository
             return await _context.Empresas
                 .Include(e => e.Usuarios)
                 .Where(e => e.Usuarios.Any(u => u.Id == UserId))
+                .AsSplitQuery()
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<EmpresaEmail>> GetAllEmailsByEmpresaIdAsync(Guid empresaId)
+        {
+            return await _context.EmpresaEmails
+                .Where(e => e.EmpresaId == empresaId)
+                .AsSplitQuery()
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<EmpresaTelefone>> GetAllTelefonesByEmpresaIdAsync(Guid empresaId)
+        {
+            return await _context.EmpresaTelefones
+                .Where(e => e.EmpresaId == empresaId)
+                .AsSplitQuery()
                 .ToListAsync();
         }
 

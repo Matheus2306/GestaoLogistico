@@ -100,8 +100,19 @@
             return $"({apenasNumeros.Substring(0, 2)}) {apenasNumeros.Substring(2, 5)}-{apenasNumeros.Substring(7, 4)}";
         }
 
-        private string RemoverCaracteresNaoNumericos(string valor)
+        // funções para retirar caracteres não numéricos, mantendo apenas os dígitos
+        public string RemoverCaracteresNaoNumericos(string valor)
         {
+            if (string.IsNullOrWhiteSpace(valor))
+                return valor;
+            
+            // Verifica se possui números na string
+            if (!valor.Any(char.IsDigit))
+            {
+                _logger.LogWarning("Valor não contém números");
+                return string.Empty;
+            }
+            
             return new string(valor.Where(char.IsDigit).ToArray());
         }
     }

@@ -7,6 +7,7 @@ using GestaoLogistico.Services.EmpresaService;
 using GestaoLogistico.Services.FileService;
 using GestaoLogistico.Services.FormatService;
 using GestaoLogistico.Services.UsuarioService;
+using GestaoLogistico.Services.Validator.Phone;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -115,6 +116,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmpresaService, EmpresaService>();
 builder.Services.AddScoped<IDocValidatorService, DocValidatorService>();
 builder.Services.AddScoped<IFormatService, FormatService>();
+builder.Services.AddScoped<IPhoneValidator, PhoneValidator>();
 
 //registrar AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));

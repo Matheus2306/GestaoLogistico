@@ -31,7 +31,7 @@ namespace GestaoLogistico.Controllers
             try
             {
                 var result = await _empresaService.CriarEmpresaAsync(dto);
-                return CreatedAtAction(nameof(CriarEmpresa), new { id = result.EmpresaId }, result);
+                return CreatedAtAction(nameof(CriarEmpresa), new { id = result.Id }, result);
             }
             catch (UnauthorizedAccessException ex)
             {
