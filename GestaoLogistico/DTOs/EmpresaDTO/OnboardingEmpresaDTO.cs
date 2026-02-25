@@ -16,7 +16,7 @@ namespace GestaoLogistico.DTOs.EmpresaDTO
         public string? NomeFantasia { get; set; }
 
         [Required(ErrorMessage = "O CNPJ é obrigatório.")]
-        [MaxLength(14)]
+        [MaxLength(18)]
         public required string CNPJ { get; set; }
 
         [MaxLength(20)]

@@ -72,7 +72,7 @@ namespace GestaoLogistico.Controllers
         }
 
         [Authorize(Roles = "Empresa")]
-        [HttpDelete("DeleteCompany/{empresaId}")]
+        [HttpDelete("UnlinkCompany/{empresaId}")]
         public async Task<IActionResult> DeleteCompany(Guid empresaId)
         {
             try

@@ -52,17 +52,18 @@ namespace GestaoLogistico.Services.EmpresaService
                 throw new UnauthorizedAccessException("Usuário não autenticado.");
             }
 
-            // 2. Validar CNPJ
-            if (_docValidatorService.ValidarCNPJ(dto.CNPJ) == null)
+            // 2. Validar e limpar CNPJ (remover formatação)
+            var cnpjLimpo = _docValidatorService.ValidarCNPJ(dto.CNPJ);
+            if (cnpjLimpo == null)
             {
                 _logger.LogWarning("CNPJ inválido fornecido: {CNPJ} por usuário {UserId}", dto.CNPJ, currentUser.Id);
                 throw new ArgumentException("CNPJ inválido.");
             }
 
-            // 3. Verificar se o CNPJ já está cadastrado
-            if (await _empresaRepository.CNPJExisteAsync(dto.CNPJ))
+            // 3. Verificar se o CNPJ já está cadastrado (usando o CNPJ limpo)
+            if (await _empresaRepository.CNPJExisteAsync(cnpjLimpo))
             {
-                _logger.LogWarning("CNPJ já cadastrado: {CNPJ}", dto.CNPJ);
+                _logger.LogWarning("CNPJ já cadastrado: {CNPJ}", cnpjLimpo);
                 throw new ArgumentException("Este CNPJ já está cadastrado.");
             }
 
@@ -75,6 +76,7 @@ namespace GestaoLogistico.Services.EmpresaService
 
             // 5. Mapear empresa usando AutoMapper
             var empresa = _mapper.Map<Empresa>(dto);
+            empresa.CNPJ = cnpjLimpo; // Usar o CNPJ limpo (sem formatação)
             empresa.UsuarioResponsavelId = usuario.Id;
             empresa.CriadoEm = DateTime.UtcNow;
             empresa.CriadoPorId = usuario.Id;
@@ -87,65 +89,72 @@ namespace GestaoLogistico.Services.EmpresaService
                 throw new InvalidOperationException("Usuário já está vinculado a outra empresa. Por favor, desvincule-se da empresa atual antes de criar uma nova."); 
             }
 
-            // 5. Vincular usuário à empresa
+            // 7. Preparar emails
+            if(dto.Emails == null)
+                throw new ArgumentException("A empresa deve conter pelo menos um email de contato.");
+
+            // 7. Preparar emails
+            if(dto.Emails == null)
+                throw new ArgumentException("A empresa deve conter pelo menos um email de contato.");
+
+            var emails = _mapper.Map<List<EmpresaEmail>>(dto.Emails);
+            foreach (var email in emails)
+            {
+                email.EmpresaId = empresa.EmpresaId;
+                email.CriadoEm = DateTime.UtcNow;
+                email.CriadoPorId = usuario.Id;
+            }
+
+            // 8. Preparar telefones
+            if (dto.Telefones == null)
+                throw new ArgumentException("A empresa deve conter pelo menos um telefone de contato.");
+
+            var telefones = _mapper.Map<List<EmpresaTelefone>>(dto.Telefones);
+            foreach (var telefone in telefones)
+            {
+                //verifica se o número de telefone possui um valor válido antes de tentar adicionar só numeros 
+                if(_phoneValidator.IsValid(telefone.Numero)) 
+                   telefone.Numero = _phoneValidator.RemoveFormatting(telefone.Numero);
+
+                telefone.EmpresaId = empresa.EmpresaId;
+                telefone.CriadoEm = DateTime.UtcNow;
+                telefone.CriadoPorId = usuario.Id;
+            }
+
+            // 9. Criar a empresa PRIMEIRO (antes de vincular o usuário)
+            await _empresaRepository.CriarEmpresaAsync(empresa);
+
+            _logger.LogInformation("Empresa {EmpresaId} criada com sucesso pelo usuário {UserId}",
+                empresa.EmpresaId, usuario.Id);
+
+            // 10. Adicionar emails e telefones que referenciam a empresa
+            await _empresaRepository.AdicionarEmailsAsync(emails);
+            await _empresaRepository.AdicionarTelefonesAsync(telefones);
+
+            // 11. AGORA vincular usuário à empresa (empresa já existe no banco)
             usuario.EmpresaId = empresa.EmpresaId;
 
-            // 8. Atribuir role "Empresa" se não tiver
+            // 12. Atribuir role "Empresa" se não tiver (isso salva o usuário automaticamente)
             if (!await _userManager.IsInRoleAsync(usuario, "Empresa"))
             {
                 await _userManager.AddToRoleAsync(usuario, "Empresa");
                 _logger.LogInformation("Role 'Empresa' atribuída ao usuário {UserId}", usuario.Id);
             }
-
-            // 9. Adicionar emails
-            if(dto.Emails == null)
-                throw new ArgumentException("A empresa deve conter pelo menos um email de contato.");
-
-            var emails = _mapper.Map<List<EmpresaEmail>>(dto.Emails);
-                foreach (var email in emails)
-                {
-                    email.EmpresaId = empresa.EmpresaId;
-                    email.CriadoEm = DateTime.UtcNow;
-                    email.CriadoPorId = usuario.Id;
-                }
-
-
-            // 10. Adicionar telefones
-            if (dto.Telefones == null)
-                throw new ArgumentException("A empresa deve conter pelo menos um telefone de contato.");
-
-            var telefones = _mapper.Map<List<EmpresaTelefone>>(dto.Telefones);
-                foreach (var telefone in telefones)
-                {
-                    //verifica se o número de telefone possui um valor válido antes de tentar adicionar só numeros 
-                    if(_phoneValidator.IsValid(telefone.Numero)) 
-                       telefone.Numero = _phoneValidator.RemoveFormatting(telefone.Numero);
-
-                    telefone.EmpresaId = empresa.EmpresaId;
-                    telefone.CriadoEm = DateTime.UtcNow;
-                    telefone.CriadoPorId = usuario.Id;
-                }
-
-            
-
-            _logger.LogInformation("Empresa {EmpresaId} criada com sucesso pelo usuário {UserId}",
-                empresa.EmpresaId, usuario.Id);
-
-            var usuarioAtualizado = await _usuarioRepository.UpdateUserAsync(usuario);
-            if (!usuarioAtualizado)
+            else
             {
-                _logger.LogError("Falha ao vincular usuário {UserId} à empresa {EmpresaId}", usuario.Id, empresa.EmpresaId);
-                throw new InvalidOperationException("Erro ao vincular usuário à empresa.");
+                // Se já tem a role, precisa atualizar manualmente para salvar o EmpresaId
+                var usuarioAtualizado = await _usuarioRepository.UpdateUserAsync(usuario);
+                if (!usuarioAtualizado)
+                {
+                    _logger.LogError("Falha ao vincular usuário {UserId} à empresa {EmpresaId}", usuario.Id, empresa.EmpresaId);
+                    throw new InvalidOperationException("Erro ao vincular usuário à empresa.");
+                }
             }
 
-
-            await _empresaRepository.AdicionarEmailsAsync(emails);
-            await _empresaRepository.AdicionarTelefonesAsync(telefones);
-            await _empresaRepository.CriarEmpresaAsync(empresa);
-
-            // 11. Buscar empresa completa e retornar DTO
+            // 13. Buscar empresa completa e retornar DTO
             var empresaCompleta = await _empresaRepository.GetEmpresaCompletaAsync(empresa.EmpresaId);
-            return _mapper.Map<EmpresaSimpleDTO>(empresaCompleta);
+
+            return await MapEmpresaToSimpleDTOAsync(empresaCompleta);
         }
 
         public async Task<IEnumerable<EmpresaSimpleDTO>> GetEmpresaByUserAsync()
@@ -170,19 +179,8 @@ namespace GestaoLogistico.Services.EmpresaService
             {
                 _logger.LogInformation("Empresa encontrada para o usuário {UserId}: {EmpresaId} - {RazaoSocial}",
                     currentUser.Id, empresa.EmpresaId, empresa.RazaoSocial ?? "N/A");
-                var dto = _mapper.Map<EmpresaSimpleDTO>(empresa);
-                dto.CNPJ = _formatService.SetupFormatDocument(dto.CNPJ);
                 
-                var telefones = await _empresaRepository.GetAllTelefonesByEmpresaIdAsync(dto.Id);
-                dto.Telefones = _mapper.Map<List<EmpresaTelefoneDTO>>(telefones);
-
-                var emails = await _empresaRepository.GetAllEmailsByEmpresaIdAsync(dto.Id);
-                dto.Emails = _mapper.Map<List<EmpresaEmailDTO>>(emails);
-
-                foreach (var telefone in dto.Telefones)
-                {
-                    telefone.Numero = _formatService.SetupFormatPhone(telefone.Numero);
-                }
+                var dto = await MapEmpresaToSimpleDTOAsync(empresa);
                 empresaDTO.Add(dto);
             }
 
@@ -192,6 +190,8 @@ namespace GestaoLogistico.Services.EmpresaService
         public async Task<bool> DeleteEmpresaAsync(Guid empresaId)
         {
             var currentUser = await _usuarioRepository.GetCurrentUser();
+            var usuario = await _usuarioRepository.GetUserByIdAsync(currentUser.Id);
+
             if (currentUser == null)
             {
                 _logger.LogWarning("Tentativa de deletar empresa sem estar autenticado.");
@@ -209,6 +209,17 @@ namespace GestaoLogistico.Services.EmpresaService
                     currentUser.Id, empresaId);
                 throw new UnauthorizedAccessException("Você não tem permissão para deletar esta empresa.");
             }
+
+            //desvincular usuário da empresa antes de deletar
+            usuario.EmpresaId = null;
+
+            //retirar a role de empresa do usuário
+            if (await _userManager.IsInRoleAsync(usuario, "Empresa"))
+            {
+                await _userManager.RemoveFromRoleAsync(usuario, "Empresa");
+                _logger.LogInformation("Role 'Empresa' removida do usuário {UserId} após exclusão da empresa.", usuario.Id);
+            }
+
             var result = await _empresaRepository.DeleteEmpresaAsync(empresaId);
             if (result)
             {
@@ -219,8 +230,30 @@ namespace GestaoLogistico.Services.EmpresaService
             {
                 _logger.LogError("Falha ao deletar empresa {EmpresaId} pelo usuário {UserId}.",
                     empresaId, currentUser.Email);
+                throw new ArgumentException("Falha ao deletar a empresa, tente novamente mais tarde!");
             }
+            await _usuarioRepository.UpdateUserAsync(usuario);
+
             return result;
+        }
+
+        private async Task<EmpresaSimpleDTO> MapEmpresaToSimpleDTOAsync(Empresa empresa)
+        {
+            var dto = _mapper.Map<EmpresaSimpleDTO>(empresa);
+            dto.CNPJ = _formatService.SetupFormatDocument(dto.CNPJ);
+
+            var telefones = await _empresaRepository.GetAllTelefonesByEmpresaIdAsync(dto.Id);
+            dto.Telefones = _mapper.Map<List<EmpresaTelefoneDTO>>(telefones);
+
+            var emails = await _empresaRepository.GetAllEmailsByEmpresaIdAsync(dto.Id);
+            dto.Emails = _mapper.Map<List<EmpresaEmailDTO>>(emails);
+
+            foreach (var telefone in dto.Telefones)
+            {
+                telefone.Numero = _formatService.SetupFormatPhone(telefone.Numero);
+            }
+
+            return dto;
         }
     }
 }
