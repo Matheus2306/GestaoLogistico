@@ -21,6 +21,14 @@ namespace GestaoLogistico.Services.EmpresaService
         Task<IEnumerable<EmpresaSimpleDTO>> GetEmpresaByUserAsync();
 
         /// <summary>
+        /// Atualiza os dados de uma empresa existente. O usuário deve ser o responsável pela empresa.
+        /// </summary>
+        /// <param name="empresaId">ID da empresa a ser atualizada</param>
+        /// <param name="dto">Dados atualizados da empresa</param>
+        /// <returns>Dados completos da empresa atualizada</returns>
+        Task<EmpresaSimpleDTO> UpdateEmpresaAsync(Guid empresaId, EmpresaEditDTO dto);
+
+        /// <summary>
         /// deleta uma empresa pelo seu ID. O usuário deve ser o responsável pela empresa para realizar a exclusão.
         /// </summary>
         Task<bool> DeleteEmpresaAsync(Guid empresaId);

@@ -34,6 +34,11 @@ namespace GestaoLogistico.Repositories.EmpresaRepository
         Task<IEnumerable<EmpresaEmail>> GetAllEmailsByEmpresaIdAsync(Guid empresaId);
         Task<IEnumerable<EmpresaTelefone>> GetAllTelefonesByEmpresaIdAsync(Guid empresaId);
 
+        /// <summary>
+        /// Atualiza uma empresa existente
+        /// </summary>
+        Task<bool> UpdateEmpresaAsync(Empresa empresa);
+
         Task<bool> DeleteEmpresaAsync(Guid empresaId);
     }
 }

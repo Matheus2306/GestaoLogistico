@@ -71,6 +71,36 @@ namespace GestaoLogistico.Controllers
             }
         }
 
+        //http put de atualizar a empresa, apenas o responsável pode atualizar os dados da empresa
+        [Authorize(Roles = "Empresa")]
+        [HttpPut("UpdateCompany/{empresaId}")]
+        public async Task<IActionResult> UpdateCompany(Guid empresaId, [FromBody] EmpresaEditDTO dto)
+        {
+            try
+            {
+                var result = await _empresaService.UpdateEmpresaAsync(empresaId, dto);
+                if (result != null)
+                    return Ok(result);
+                else
+                    return NotFound(new { message = "Empresa não encontrada ou não pode ser atualizada." });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning("Tentativa não autorizada: {Message}", ex.Message);
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning("Erro de validação: {Message}", ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao atualizar empresa");
+                return StatusCode(500, new { message = "Erro interno ao atualizar empresa.", details = ex.Message });
+            }
+        }
+
         [Authorize(Roles = "Empresa")]
         [HttpDelete("UnlinkCompany/{empresaId}")]
         public async Task<IActionResult> DeleteCompany(Guid empresaId)

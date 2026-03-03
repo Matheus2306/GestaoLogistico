@@ -8,6 +8,7 @@ using GestaoLogistico.Services.DocValidator;
 using GestaoLogistico.Services.FormatService;
 using GestaoLogistico.Services.Validator.Phone;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.ActionConstraints;
 
 namespace GestaoLogistico.Services.EmpresaService
 {
@@ -185,6 +186,112 @@ namespace GestaoLogistico.Services.EmpresaService
             }
 
             return empresaDTO;
+        }
+
+        // serviço de edição de empresa
+        public async Task<EmpresaSimpleDTO> UpdateEmpresaAsync(Guid empresaId, EmpresaEditDTO dto)
+        {
+            //1. Obter usuário autenticado
+            var currentUser = await _usuarioRepository.GetCurrentUser();
+            if (currentUser == null)
+            {
+                _logger.LogWarning("Tentativa de editar empresa sem estar autenticado.");
+                throw new UnauthorizedAccessException("Usuário não autenticado.");
+            }
+
+            //2. Buscar empresa completa para verificar se existe e se o usuário é responsável
+            var empresa = await _empresaRepository.GetEmpresaCompletaAsync(empresaId);
+            if (empresa == null)
+            {
+                _logger.LogWarning("Empresa não encontrada para edição: {EmpresaId}", empresaId);
+                throw new KeyNotFoundException("Empresa não encontrada.");
+            }
+
+            // Verificar se o usuário é responsável pela empresa
+            if (empresa.UsuarioResponsavelId != currentUser.Id)
+            {
+                _logger.LogWarning("Usuário {UserId} tentou editar empresa {EmpresaId} sem ser responsável.",
+                    currentUser.Id, empresaId);
+                throw new UnauthorizedAccessException("Você não tem permissão para editar esta empresa.");
+            }
+
+            //3. Atualizar apenas os campos fornecidos (não-null)
+            if (dto.RazaoSocial != null)
+                empresa.RazaoSocial = dto.RazaoSocial;
+
+            if (dto.NomeFantasia != null)
+                empresa.NomeFantasia = dto.NomeFantasia;
+
+            if (dto.CNPJ != null)
+            {
+                // Validar e limpar CNPJ (remover formatação)
+                var cnpjLimpo = _docValidatorService.ValidarCNPJ(dto.CNPJ);
+                if (cnpjLimpo == null)
+                {
+                    _logger.LogWarning("CNPJ inválido fornecido: {CNPJ} por usuário {UserId}", dto.CNPJ, currentUser.Id);
+                    throw new ArgumentException("CNPJ inválido.");
+                }
+
+                // Verificar se o CNPJ mudou E se já existe
+                if (empresa.CNPJ != cnpjLimpo)
+                {
+                    if (await _empresaRepository.CNPJExisteAsync(cnpjLimpo))
+                    {
+                        _logger.LogWarning("CNPJ já cadastrado para outra empresa: {CNPJ}", cnpjLimpo);
+                        throw new ArgumentException("Este CNPJ já está cadastrado para outra empresa.");
+                    }
+                }
+
+                empresa.CNPJ = cnpjLimpo;
+            }
+
+            if (dto.InscricaoEstadual != null)
+                empresa.InscricaoEstadual = dto.InscricaoEstadual;
+
+            if (dto.InscricaoMunicipal != null)
+                empresa.InscricaoMunicipal = dto.InscricaoMunicipal;
+
+            // Atualizar endereço se fornecido
+            if (dto.CEP != null)
+                empresa.CEP = dto.CEP;
+
+            if (dto.Logradouro != null)
+                empresa.Logradouro = dto.Logradouro;
+
+            if (dto.Numero != null)
+                empresa.Numero = dto.Numero;
+
+            if (dto.Complemento != null)
+                empresa.Complemento = dto.Complemento;
+
+            if (dto.Bairro != null)
+                empresa.Bairro = dto.Bairro;
+
+            if (dto.Cidade != null)
+                empresa.Cidade = dto.Cidade;
+
+            if (dto.UF != null)
+                empresa.UF = dto.UF;
+
+            // Atualizar metadados de auditoria
+            empresa.AtualizadoEm = DateTime.UtcNow;
+            empresa.AtualizadoPorId = currentUser.Id;
+
+            // Atualizar a empresa no banco
+            var result = await _empresaRepository.UpdateEmpresaAsync(empresa);
+            if (!result)
+            {
+                _logger.LogError("Falha ao atualizar empresa {EmpresaId} pelo usuário {UserId}.",
+                    empresaId, currentUser.Id);
+                throw new InvalidOperationException("Falha ao atualizar a empresa, tente novamente mais tarde!");
+            }
+
+            _logger.LogInformation("Empresa {EmpresaId} atualizada com sucesso pelo usuário {UserId}.",
+                empresaId, currentUser.Id);
+
+            // Retornar a empresa atualizada
+            var empresaCompleta = await _empresaRepository.GetEmpresaCompletaAsync(empresa.EmpresaId);
+            return await MapEmpresaToSimpleDTOAsync(empresaCompleta);
         }
 
         public async Task<bool> DeleteEmpresaAsync(Guid empresaId)

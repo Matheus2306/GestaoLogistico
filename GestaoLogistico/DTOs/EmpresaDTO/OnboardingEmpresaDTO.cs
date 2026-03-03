@@ -52,6 +52,55 @@ namespace GestaoLogistico.DTOs.EmpresaDTO
         public List<EmpresaTelefoneDTO>? Telefones { get; set; }
     }
 
+    /// <summary>
+    /// DTO para edição de empresa - Apenas os campos fornecidos serão atualizados
+    /// O ID da empresa vem da rota da URL
+    /// </summary>
+    public class EmpresaEditDTO
+    {
+        // Dados da Empresa (todos opcionais para permitir atualização parcial)
+        [MaxLength(200)]
+        public string? RazaoSocial { get; set; }
+
+        [MaxLength(200)]
+        public string? NomeFantasia { get; set; }
+
+        [MaxLength(18)]
+        public string? CNPJ { get; set; }
+
+        [MaxLength(20)]
+        public string? InscricaoEstadual { get; set; }
+
+        [MaxLength(20)]
+        public string? InscricaoMunicipal { get; set; }
+
+        // Endereço
+        [MaxLength(10)]
+        public string? CEP { get; set; }
+
+        [MaxLength(200)]
+        public string? Logradouro { get; set; }
+
+        [MaxLength(20)]
+        public string? Numero { get; set; }
+
+        [MaxLength(100)]
+        public string? Complemento { get; set; }
+
+        [MaxLength(100)]
+        public string? Bairro { get; set; }
+
+        [MaxLength(100)]
+        public string? Cidade { get; set; }
+
+        [MaxLength(2)]
+        public string? UF { get; set; }
+
+        // Emails e Telefones (opcionais)
+        public List<EmpresaEmailDTO>? Emails { get; set; }
+        public List<EmpresaTelefoneDTO>? Telefones { get; set; }
+    }
+
     public class EmpresaEmailDTO
     {
         [Required]

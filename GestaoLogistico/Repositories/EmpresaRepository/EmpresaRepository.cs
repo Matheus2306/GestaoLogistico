@@ -73,6 +73,20 @@ namespace GestaoLogistico.Repositories.EmpresaRepository
                 .ToListAsync();
         }
 
+        public async Task<bool> UpdateEmpresaAsync(Empresa empresa)
+        {
+            try
+            {
+                _context.Empresas.Update(empresa);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public async Task<bool> DeleteEmpresaAsync(Guid empresaId)
         {
             var empresa = await _context.Empresas.FindAsync(empresaId);
@@ -83,6 +97,16 @@ namespace GestaoLogistico.Repositories.EmpresaRepository
             _context.Empresas.Remove(empresa);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<string> GetCNPJByEmpresaAsync(string cnpj)
+        {
+            var empresa = await _context.Empresas
+                .Where(e => e.CNPJ == cnpj)
+                .Select(e => e.CNPJ)
+                .FirstOrDefaultAsync();
+            
+            return empresa ?? string.Empty;
         }
     }
 }
