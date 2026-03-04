@@ -34,6 +34,13 @@ namespace GestaoLogistico.Services.UsuarioService
         /// <returns>O DTO do usuário atualizado</returns>
         Task<UserEditFormDTO> EditUser(UserEditFormDTO dto);
 
+
+        /// <summary>
+        /// Retorna uma lista de usuários vinculados a uma empresa específica.
+        /// </summary>
+        /// <param name="EmpresaId">ID da empresa para a qual os usuários estão vinculados</param>
+        Task<IEnumerable<UserSimpleDTO>> GetAllUsuariosByEmpresaIdAsync(Guid EmpresaId);
+
         /// <summary>
         /// Cria um novo usuário vinculado a uma empresa.
         /// </summary>

@@ -71,6 +71,28 @@ namespace GestaoLogistico.Services.UsuarioService
             return currentUserDto;
         }
 
+        public async Task<IEnumerable<UserSimpleDTO>> GetAllUsuariosByEmpresaIdAsync(Guid EmpresaId)
+        {
+            var usersLinked = await _usuarioRepository.GetAllUsuariosByEmpresaIdAsync(EmpresaId);
+            if (usersLinked == null || !usersLinked.Any())
+            {
+                _logger.LogWarning("No users found for company ID {CompanyId}.", EmpresaId);
+                throw new KeyNotFoundException($"Nenhum usuário encontrado para a empresa.");
+            }
+            
+            foreach (var user in usersLinked)
+            {
+                user.UrlFoto = _fileUploadService.GetFileUrl(user.UrlFoto);
+                //Adiciona formatação para os campos cpf e telefone
+                user.CPF = _formatService.SetupFormatDocument(user.CPF);
+                user.PhoneNumber = _formatService.SetupFormatPhone(user.PhoneNumber);
+            }
+            
+            var userDTO = _mapper.Map<IEnumerable<UserSimpleDTO>>(usersLinked);
+
+            return userDTO;
+        }
+
         //======================= CRUD ============================
         public async Task<UserEditFormDTO> EditUser(UserEditFormDTO dto)
         {
