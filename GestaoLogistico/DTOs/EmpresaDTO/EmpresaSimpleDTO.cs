@@ -13,4 +13,10 @@ namespace GestaoLogistico.DTOs.EmpresaDTO
         public List<EmpresaTelefoneDTO> Telefones { get; set; } = new();
         public List<UserSimpleDTO?> UsuariosVinculados { get; set; } = new();
     }
+
+    public class UsuarioResponsavelDTO
+    {
+        public Guid Id { get; set; }
+        public string Nome { get; set; } = string.Empty;
+    }
 }

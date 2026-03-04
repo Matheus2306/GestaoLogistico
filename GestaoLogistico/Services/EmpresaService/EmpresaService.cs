@@ -362,6 +362,8 @@ namespace GestaoLogistico.Services.EmpresaService
 
             var usuariosVinculados = await _userService.GetAllUsuariosByEmpresaIdAsync(dto.Id);
             dto.UsuariosVinculados = _mapper.Map<List<UserSimpleDTO?>>(usuariosVinculados);
+            //excluir o usuário responsável da lista de usuários vinculados, para evitar confusão na interface
+            dto.UsuariosVinculados = dto.UsuariosVinculados.Where(u => u.Id != empresa.UsuarioResponsavelId).ToList();
 
             foreach (var telefone in dto.Telefones)
             {
