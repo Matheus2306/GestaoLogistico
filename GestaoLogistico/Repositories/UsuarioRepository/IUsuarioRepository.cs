@@ -14,6 +14,8 @@ namespace GestaoLogistico.Repositories.UsuarioRepository
         /// </summary>
         Task<IEnumerable<UserDTOcompleto>> GetAllUsersAsync();
 
+        Task<IEnumerable<string>> GetUserRolesAsync(Usuario user);
+
         /// <summary> 
         /// retorna uma lista de usuários vinculados a uma empresa específica, identificada pelo seu ID. Este método pode ser utilizado para exibir informações dos usuários relacionados a uma empresa em uma interface administrativa ou para outras finalidades que envolvam a manipulação dos dados dos usuários vinculados a uma empresa.
         /// </summary>

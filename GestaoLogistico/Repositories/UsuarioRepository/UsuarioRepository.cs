@@ -46,6 +46,12 @@ namespace GestaoLogistico.Repositories.UsuarioRepository
             return userDtos;
         }
 
+        public async Task<IEnumerable<string>> GetUserRolesAsync(Usuario user)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            return roles;
+        }
+
         public async Task<IEnumerable<Usuario>> GetAllUsuariosByEmpresaIdAsync(Guid EmpresaId)
         {
             var usuario = await _context.Users.Where(u => u.EmpresaId == EmpresaId).ToListAsync();

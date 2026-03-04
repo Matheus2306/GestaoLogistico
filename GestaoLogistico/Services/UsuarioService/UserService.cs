@@ -80,16 +80,22 @@ namespace GestaoLogistico.Services.UsuarioService
                 throw new KeyNotFoundException($"Nenhum usuário encontrado para a empresa.");
             }
             
+            var userDTO = new List<UserSimpleDTO>();
             foreach (var user in usersLinked)
             {
-                user.UrlFoto = _fileUploadService.GetFileUrl(user.UrlFoto);
+                var dto = _mapper.Map<UserSimpleDTO>(user);
+                dto.UrlPhoto = !string.IsNullOrEmpty(user.UrlFoto) 
+                    ? _fileUploadService.GetFileUrl(user.UrlFoto) 
+                    : string.Empty;
                 //Adiciona formatação para os campos cpf e telefone
-                user.CPF = _formatService.SetupFormatDocument(user.CPF);
-                user.PhoneNumber = _formatService.SetupFormatPhone(user.PhoneNumber);
+                dto.CPF = _formatService.SetupFormatDocument(user.CPF);
+                dto.PhoneNumber = !string.IsNullOrEmpty(user.PhoneNumber)
+                    ? _formatService.SetupFormatPhone(user.PhoneNumber)
+                    : string.Empty;
+                dto.Roles = (await _usuarioRepository.GetUserRolesAsync(user)).ToList();
+                userDTO.Add(dto);
             }
             
-            var userDTO = _mapper.Map<IEnumerable<UserSimpleDTO>>(usersLinked);
-
             return userDTO;
         }
 
