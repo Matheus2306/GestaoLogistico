@@ -46,10 +46,10 @@ namespace GestaoLogistico.Repositories.UsuarioRepository
             return userDtos;
         }
 
-        public async Task<Usuario> GetAllUsuariosByEmpresaIdAsync(Guid EmpresaId)
+        public async Task<IEnumerable<Usuario>> GetAllUsuariosByEmpresaIdAsync(Guid EmpresaId)
         {
-            var usuario = await _context.Users.FirstOrDefaultAsync(u => u.EmpresaId == EmpresaId);
-            return usuario!;
+            var usuario = await _context.Users.Where(u => u.EmpresaId == EmpresaId).ToListAsync();
+            return usuario;
         }
 
         public async Task<UserSimpleDTO> GetCurrentUser()
