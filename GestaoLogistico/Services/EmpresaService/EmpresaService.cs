@@ -7,6 +7,7 @@ using GestaoLogistico.Repositories.EmpresaRepository;
 using GestaoLogistico.Repositories.UsuarioRepository;
 using GestaoLogistico.Services.DocValidator;
 using GestaoLogistico.Services.FormatService;
+using GestaoLogistico.Services.UsuarioService;
 using GestaoLogistico.Services.Validator.Phone;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
@@ -17,6 +18,7 @@ namespace GestaoLogistico.Services.EmpresaService
     {
         private readonly IEmpresaRepository _empresaRepository;
         private readonly IUsuarioRepository _usuarioRepository;
+        private readonly IUserService _userService;
         private readonly UserManager<Usuario> _userManager;
         private readonly IMapper _mapper;
         private readonly IDocValidatorService _docValidatorService;
@@ -32,7 +34,8 @@ namespace GestaoLogistico.Services.EmpresaService
             IDocValidatorService docValidatorService,
             ILogger<EmpresaService> logger,
             IFormatService formatService,
-            IPhoneValidator phoneValidator)
+            IPhoneValidator phoneValidator,
+            IUserService userService)
         {
             _empresaRepository = empresaRepository;
             _usuarioRepository = usuarioRepository;
@@ -42,6 +45,7 @@ namespace GestaoLogistico.Services.EmpresaService
             _formatService = formatService;
             _logger = logger;
             _phoneValidator = phoneValidator;
+            _userService = userService;
         }
 
         public async Task<EmpresaSimpleDTO> CriarEmpresaAsync(CriarEmpresaDTO dto)
@@ -356,7 +360,7 @@ namespace GestaoLogistico.Services.EmpresaService
             var emails = await _empresaRepository.GetAllEmailsByEmpresaIdAsync(dto.Id);
             dto.Emails = _mapper.Map<List<EmpresaEmailDTO>>(emails);
 
-            var usuariosVinculados = await _usuarioRepository.GetAllUsuariosByEmpresaIdAsync(dto.Id);
+            var usuariosVinculados = await _userService.GetAllUsuariosByEmpresaIdAsync(dto.Id);
             dto.UsuariosVinculados = _mapper.Map<List<UserSimpleDTO?>>(usuariosVinculados);
 
             foreach (var telefone in dto.Telefones)
