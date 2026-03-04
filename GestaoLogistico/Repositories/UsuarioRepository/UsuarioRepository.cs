@@ -46,6 +46,12 @@ namespace GestaoLogistico.Repositories.UsuarioRepository
             return userDtos;
         }
 
+        public async Task<Usuario> GetAllUsuariosByEmpresaIdAsync(Guid EmpresaId)
+        {
+            var usuario = await _context.Users.FirstOrDefaultAsync(u => u.EmpresaId == EmpresaId);
+            return usuario!;
+        }
+
         public async Task<UserSimpleDTO> GetCurrentUser()
         {
             // Obtém o ID do usuário a partir do token Bearer

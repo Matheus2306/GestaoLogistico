@@ -1,4 +1,6 @@
-﻿namespace GestaoLogistico.DTOs.EmpresaDTO
+﻿using GestaoLogistico.DTOs.UsersDTO;
+
+namespace GestaoLogistico.DTOs.EmpresaDTO
 {
     public class EmpresaSimpleDTO
     {
@@ -9,5 +11,6 @@
         public string FullAdress { get; set; } = string.Empty;
         public List<EmpresaEmailDTO> Emails { get; set; } = new();
         public List<EmpresaTelefoneDTO> Telefones { get; set; } = new();
+        public List<UserSimpleDTO?> UsuariosVinculados { get; set; } = new();
     }
 }

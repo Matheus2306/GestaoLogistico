@@ -1,5 +1,6 @@
 using AutoMapper;
 using GestaoLogistico.DTOs.EmpresaDTO;
+using GestaoLogistico.DTOs.UsersDTO;
 using GestaoLogistico.Models;
 using GestaoLogistico.Models.Empresas;
 using GestaoLogistico.Repositories.EmpresaRepository;
@@ -344,7 +345,7 @@ namespace GestaoLogistico.Services.EmpresaService
             return result;
         }
 
-        private async Task<EmpresaSimpleDTO> MapEmpresaToSimpleDTOAsync(Empresa empresa)
+        private async Task<EmpresaSimpleDTO> MapEmpresaToSimpleDTOAsync(Empresa empresa)      
         {
             var dto = _mapper.Map<EmpresaSimpleDTO>(empresa);
             dto.CNPJ = _formatService.SetupFormatDocument(dto.CNPJ);
@@ -354,6 +355,9 @@ namespace GestaoLogistico.Services.EmpresaService
 
             var emails = await _empresaRepository.GetAllEmailsByEmpresaIdAsync(dto.Id);
             dto.Emails = _mapper.Map<List<EmpresaEmailDTO>>(emails);
+
+            var usuariosVinculados = await _usuarioRepository.GetAllUsuariosByEmpresaIdAsync(dto.Id);
+            dto.UsuariosVinculados = _mapper.Map<List<UserSimpleDTO?>>(usuariosVinculados);
 
             foreach (var telefone in dto.Telefones)
             {

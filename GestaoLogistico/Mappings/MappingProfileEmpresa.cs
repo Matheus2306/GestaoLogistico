@@ -21,7 +21,8 @@ namespace GestaoLogistico.Mappings
                     }.Where(s => !string.IsNullOrWhiteSpace(s)))))
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.EmpresaId))
                 .ForMember(dest => dest.Emails, opt => opt.Ignore())
-                .ForMember(dest => dest.Telefones, opt =>opt.Ignore());
+                .ForMember(dest => dest.Telefones, opt =>opt.Ignore())
+                .ForMember(dest => dest.UsuariosVinculados, opt => opt.Ignore());
 
             // Mappings de Empresa
             CreateMap<CriarEmpresaDTO, Empresa>()
