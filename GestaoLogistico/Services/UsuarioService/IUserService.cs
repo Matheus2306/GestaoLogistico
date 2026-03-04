@@ -76,6 +76,12 @@ namespace GestaoLogistico.Services.UsuarioService
         /// <returns>Lista de roles disponíveis</returns>
         Task<IEnumerable<string>> GetAvailableRoles();
 
+        /// <summary>
+        /// Retorna a quantidade de usuários vinculados à empresa autenticada.
+        /// </summary>
+        /// <returns>Número de usuários vinculados à empresa</returns>
+        Task<int> GetCompanyUserCount();
+
         // ==================== Fim Gerenciamento de Roles ====================
     }
 }

@@ -64,5 +64,10 @@ namespace GestaoLogistico.Repositories.UsuarioRepository
         /// </summary>
         Task<bool> DeleteUserAsync(string userId);
 
+        /// <summary>
+        /// Conta quantos usuários estão vinculados a uma empresa específica.
+        /// </summary>
+        Task<int> CountUsersByEmpresaAsync(Guid empresaId);
+
     }
 }

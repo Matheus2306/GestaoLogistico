@@ -236,5 +236,27 @@ namespace GestaoLogistico.Controllers
                 return StatusCode(500, new { message = "Erro interno ao buscar roles.", details = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Retorna a quantidade de usuários vinculados à empresa autenticada
+        /// </summary>
+        [Authorize(Roles = "Empresa")]
+        [HttpGet("CompanyUserCount")]
+        public async Task<IActionResult> GetCompanyUserCount()
+        {
+            try
+            {
+                var count = await _userService.GetCompanyUserCount();
+                return Ok(new { count, maxAllowed = 10, remaining = 10 - count });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Erro interno ao buscar quantidade de usuários.", details = ex.Message });
+            }
+        }
     }
 }

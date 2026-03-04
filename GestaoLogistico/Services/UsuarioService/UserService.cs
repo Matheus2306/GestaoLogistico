@@ -205,6 +205,24 @@ namespace GestaoLogistico.Services.UsuarioService
                 throw new UnauthorizedAccessException("Apenas empresas podem criar usuários.");
             }
 
+            // Busca o usuário completo para obter o EmpresaId
+            var currentUserEntity = await _usuarioRepository.GetUserByIdAsync(currentUser.Id);
+            if (currentUserEntity?.EmpresaId == null)
+            {
+                _logger.LogWarning("User {UserId} does not have an associated company.", currentUser.Id);
+                throw new UnauthorizedAccessException("Usuário não está vinculado a nenhuma empresa.");
+            }
+
+            var empresaId = currentUserEntity.EmpresaId.Value;
+
+            // Verifica se a empresa já atingiu o limite de 10 usuários
+            var userCount = await _usuarioRepository.CountUsersByEmpresaAsync(empresaId);
+            if (userCount >= 10)
+            {
+                _logger.LogWarning("Company {CompanyId} has reached the maximum limit of 10 users.", empresaId);
+                throw new ArgumentException("Sua empresa já atingiu o limite máximo de 10 usuários.");
+            }
+
             // Valida o CPF
             if (_docValidatorService.ValidarCPF(dto.CPF) == null)
             {
@@ -240,6 +258,7 @@ namespace GestaoLogistico.Services.UsuarioService
             newUser.EmailConfirmed = false;
             newUser.CriadoEm = DateTime.UtcNow;
             newUser.CriadoPorId = currentUser.Id;
+            newUser.EmpresaId = empresaId; // Vincula o novo usuário à empresa
 
             var (success, errors, user) = await _usuarioRepository.CreateUserAsync(newUser, dto.Password);
 
@@ -258,7 +277,7 @@ namespace GestaoLogistico.Services.UsuarioService
                 throw new ArgumentException($"Erro ao atribuir a role '{dto.Role}' ao usuário.");
             }
 
-            _logger.LogInformation("User {UserId} created successfully by company {CompanyId}", user!.Id, currentUser.Id);
+            _logger.LogInformation("User {UserId} created successfully by company {CompanyId} and linked to the company.", user!.Id, empresaId);
 
 
             // Retorna o DTO completo
@@ -277,12 +296,38 @@ namespace GestaoLogistico.Services.UsuarioService
                 _logger.LogWarning("Current user not found in token.");
                 throw new KeyNotFoundException($"Usuário não foi encontrado.");
             }
-            // Permite deletar apenas se for o próprio usuário ou se for uma empresa
-            if (currentUser.Id != userId && !currentUser.Roles.Contains("Empresa"))
+
+            // Busca o usuário a ser deletado
+            var targetUser = await _usuarioRepository.GetUserByIdAsync(userId);
+            if (targetUser == null)
+            {
+                _logger.LogWarning("Target user {UserId} not found.", userId);
+                throw new KeyNotFoundException("Usuário não encontrado.");
+            }
+
+            // Se for empresa, verifica se o usuário pertence à mesma empresa
+            if (currentUser.Roles.Contains("Empresa"))
+            {
+                var currentUserEntity = await _usuarioRepository.GetUserByIdAsync(currentUser.Id);
+                if (currentUserEntity?.EmpresaId == null)
+                {
+                    _logger.LogWarning("User {UserId} does not have an associated company.", currentUser.Id);
+                    throw new UnauthorizedAccessException("Usuário não está vinculado a nenhuma empresa.");
+                }
+
+                if (targetUser.EmpresaId != currentUserEntity.EmpresaId)
+                {
+                    _logger.LogWarning("User {UserId} tried to delete user {TargetUserId} from different company.", currentUser.Id, userId);
+                    throw new UnauthorizedAccessException("Você só pode deletar usuários da sua empresa.");
+                }
+            }
+            // Se não for empresa, permite deletar apenas a própria conta
+            else if (currentUser.Id != userId)
             {
                 _logger.LogWarning("Unauthorized attempt to delete user {UserId} by user {CurrentUserId}.", userId, currentUser.Id);
-                throw new UnauthorizedAccessException("Você só pode deletar sua própria conta ou deve ser uma empresa para deletar outros usuários.");
+                throw new UnauthorizedAccessException("Você só pode deletar sua própria conta.");
             }
+
             var success = await _usuarioRepository.DeleteUserAsync(userId);
             if (success)
             {
@@ -308,12 +353,27 @@ namespace GestaoLogistico.Services.UsuarioService
                 throw new UnauthorizedAccessException("Apenas empresas podem atribuir roles.");
             }
 
+            // Busca o usuário completo para obter o EmpresaId
+            var currentUserEntity = await _usuarioRepository.GetUserByIdAsync(currentUser.Id);
+            if (currentUserEntity?.EmpresaId == null)
+            {
+                _logger.LogWarning("User {UserId} does not have an associated company.", currentUser.Id);
+                throw new UnauthorizedAccessException("Usuário não está vinculado a nenhuma empresa.");
+            }
+
             // Busca o usuário alvo
             var targetUser = await _usuarioRepository.GetUserByIdAsync(dto.UserId);
             if (targetUser == null)
             {
                 _logger.LogWarning("User {UserId} not found.", dto.UserId);
                 throw new KeyNotFoundException("Usuário não encontrado.");
+            }
+
+            // Verifica se o usuário alvo pertence à mesma empresa
+            if (targetUser.EmpresaId != currentUserEntity.EmpresaId)
+            {
+                _logger.LogWarning("User {UserId} tried to assign role to user {TargetUserId} from different company.", currentUser.Id, dto.UserId);
+                throw new UnauthorizedAccessException("Você só pode atribuir roles a usuários da sua empresa.");
             }
 
             // Valida a role (não permite atribuir Administrador)
@@ -335,7 +395,7 @@ namespace GestaoLogistico.Services.UsuarioService
 
             if (success)
             {
-                _logger.LogInformation("Role {Role} assigned to user {UserId} by company {CompanyId}", dto.Role, dto.UserId, currentUser.Id);
+                _logger.LogInformation("Role {Role} assigned to user {UserId} by company {CompanyId}", dto.Role, dto.UserId, currentUserEntity.EmpresaId);
             }
             else
             {
@@ -356,12 +416,27 @@ namespace GestaoLogistico.Services.UsuarioService
                 throw new UnauthorizedAccessException("Apenas empresas podem remover roles.");
             }
 
+            // Busca o usuário completo para obter o EmpresaId
+            var currentUserEntity = await _usuarioRepository.GetUserByIdAsync(currentUser.Id);
+            if (currentUserEntity?.EmpresaId == null)
+            {
+                _logger.LogWarning("User {UserId} does not have an associated company.", currentUser.Id);
+                throw new UnauthorizedAccessException("Usuário não está vinculado a nenhuma empresa.");
+            }
+
             // Busca o usuário alvo
             var targetUser = await _usuarioRepository.GetUserByIdAsync(dto.UserId);
             if (targetUser == null)
             {
                 _logger.LogWarning("User {UserId} not found.", dto.UserId);
                 throw new KeyNotFoundException("Usuário não encontrado.");
+            }
+
+            // Verifica se o usuário alvo pertence à mesma empresa
+            if (targetUser.EmpresaId != currentUserEntity.EmpresaId)
+            {
+                _logger.LogWarning("User {UserId} tried to remove role from user {TargetUserId} from different company.", currentUser.Id, dto.UserId);
+                throw new UnauthorizedAccessException("Você só pode remover roles de usuários da sua empresa.");
             }
 
             // Não permite remover role Administrador
@@ -375,7 +450,7 @@ namespace GestaoLogistico.Services.UsuarioService
 
             if (success)
             {
-                _logger.LogInformation("Role {Role} removed from user {UserId} by company {CompanyId}", dto.Role, dto.UserId, currentUser.Id);
+                _logger.LogInformation("Role {Role} removed from user {UserId} by company {CompanyId}", dto.Role, dto.UserId, currentUserEntity.EmpresaId);
             }
             else
             {
@@ -390,6 +465,31 @@ namespace GestaoLogistico.Services.UsuarioService
             var allRoles = await _usuarioRepository.GetAllRolesAsync();
             // Remove "Administrador" das roles disponíveis
             return allRoles.Where(r => r != "Administrador");
+        }
+
+        public async Task<int> GetCompanyUserCount()
+        {
+            // Verifica se a empresa está autenticada e tem a role "Empresa"
+            var currentUser = await _usuarioRepository.GetCurrentUser();
+
+            if (currentUser == null || !currentUser.Roles.Contains("Empresa"))
+            {
+                _logger.LogWarning("Unauthorized attempt to get user count by non-company user.");
+                throw new UnauthorizedAccessException("Apenas empresas podem consultar a quantidade de usuários.");
+            }
+
+            // Busca o usuário completo para obter o EmpresaId
+            var currentUserEntity = await _usuarioRepository.GetUserByIdAsync(currentUser.Id);
+            if (currentUserEntity?.EmpresaId == null)
+            {
+                _logger.LogWarning("User {UserId} does not have an associated company.", currentUser.Id);
+                throw new UnauthorizedAccessException("Usuário não está vinculado a nenhuma empresa.");
+            }
+
+            var count = await _usuarioRepository.CountUsersByEmpresaAsync(currentUserEntity.EmpresaId.Value);
+            _logger.LogInformation("Company {CompanyId} has {Count} users.", currentUserEntity.EmpresaId, count);
+
+            return count;
         }
 
 

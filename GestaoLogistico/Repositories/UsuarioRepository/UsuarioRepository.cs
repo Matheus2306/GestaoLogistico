@@ -149,5 +149,10 @@ namespace GestaoLogistico.Repositories.UsuarioRepository
                 return false;
             }
         }
+
+        public async Task<int> CountUsersByEmpresaAsync(Guid empresaId)
+        {
+            return await _context.Users.CountAsync(u => u.EmpresaId == empresaId);
+        }
     }
 }
