@@ -32,7 +32,8 @@ namespace GestaoLogistico.Repositories.UsuarioRepository
         public async Task<IEnumerable<UserDTOcompleto>> GetAllUsersAsync()
         {
             // Primeiro, busca todos os usuários
-            var users = await _context.Users.Include(e => e.Empresa).ToListAsync();
+            //comando take é para limitar a quantidade de usuários retornados, nesse caso, 10 usuários. Isso é útil para evitar sobrecarregar o sistema com uma grande quantidade de dados, especialmente se houver muitos usuários no banco de dados. Você pode ajustar esse número conforme necessário ou implementar paginação para lidar com grandes conjuntos de dados.
+            var users = await _context.Users.Include(e => e.Empresa).Take(10).ToListAsync();
 
             // Depois, mapeia cada usuário e busca suas roles separadamente
             var userDtos = new List<UserDTOcompleto>();
@@ -54,7 +55,7 @@ namespace GestaoLogistico.Repositories.UsuarioRepository
 
         public async Task<IEnumerable<Usuario>> GetAllUsuariosByEmpresaIdAsync(Guid EmpresaId)
         {
-            var usuario = await _context.Users.Where(u => u.EmpresaId == EmpresaId).ToListAsync();
+            var usuario = await _context.Users.Where(u => u.EmpresaId == EmpresaId).Take(10).ToListAsync();
             return usuario;
         }
 
