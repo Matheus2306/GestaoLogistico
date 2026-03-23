@@ -12,11 +12,14 @@ namespace GestaoLogistico.DTOs.EmpresaDTO
         public List<EmpresaEmailDTO> Emails { get; set; } = new();
         public List<EmpresaTelefoneDTO> Telefones { get; set; } = new();
         public List<UserSimpleDTO?> UsuariosVinculados { get; set; } = new();
+        public UsuarioResponsavelDTO UsuarioResponsavel { get; set;  } = new();
     }
 
     public class UsuarioResponsavelDTO
     {
         public Guid Id { get; set; }
         public string Nome { get; set; } = string.Empty;
+        public string CPF { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
     }
 }

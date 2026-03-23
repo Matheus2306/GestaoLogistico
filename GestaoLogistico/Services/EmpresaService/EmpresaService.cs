@@ -365,6 +365,7 @@ namespace GestaoLogistico.Services.EmpresaService
             //excluir o usuário responsável da lista de usuários vinculados, para evitar confusão na interface
             dto.UsuariosVinculados = dto.UsuariosVinculados.Where(u => u.Id != empresa.UsuarioResponsavelId).ToList();
 
+
             foreach (var telefone in dto.Telefones)
             {
                 telefone.Numero = _formatService.SetupFormatPhone(telefone.Numero);
